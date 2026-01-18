@@ -43,6 +43,16 @@ module.exports = {
                 shardId: 0 // Default shard
             });
 
+            // Debug Player Events
+            player.on('start', () => console.log(`[Player] Track started: ${metadata.title}`));
+            player.on('end', (reason) => console.log(`[Player] Track ended. Reason: ${reason.reason}`));
+            player.on('closed', (reason) => {
+                console.log(`[Player] Connection closed. Code: ${reason.code}, Reason: ${reason.reason}`);
+                // If closed usage, we might need to destroy
+            });
+            player.on('exception', (err) => console.error(`[Player] Exception: ${err.exception.message}`));
+            player.on('stuck', (data) => console.warn(`[Player] Stuck: ${data.thresholdMs}ms`));
+
             // Play
             await player.playTrack({ track: track });
 
