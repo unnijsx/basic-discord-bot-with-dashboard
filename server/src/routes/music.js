@@ -13,24 +13,11 @@ router.get('/:guildId/status', checkAuth, (req, res) => {
 
     // Find any node that has this player
     // Shoukaku manages players on specific nodes. We can iterate nodes or just getting from the best node if we don't know.
-    // However, players are usually stored in a map on the node.
-    // A simpler way with Shoukaku wrapper might be needed, but raw access:
-    let player = null;
-    console.log(`[DEBUG] Checking status for Guild: ${req.params.guildId}`);
-    console.log(`[DEBUG] Nodes count: ${shoukaku.nodes.size}`);
-
-    for (const node of shoukaku.nodes.values()) {
-        console.log(`[DEBUG] Node ${node.name} players: ${node.players ? node.players.size : 'undefined'}`);
-        if (node.players) {
-            // Log all player guild IDs for debugging
-            console.log(`[DEBUG] Node ${node.name} player GuildIDs:`, [...node.players.keys()]);
-
-            if (node.players.has(req.params.guildId)) {
-                player = node.players.get(req.params.guildId);
-                console.log(`[DEBUG] Found player for guild ${req.params.guildId} on node ${node.name}`);
-                break;
-            }
-        }
+    // Verify Shoukaku player access
+    let player = shoukaku.players.get(req.params.guildId);
+    if (!player) {
+        // Fallback debug
+        console.log(`[DEBUG] Player not found in shoukaku.players for ${req.params.guildId}`);
     }
 
     if (!player) {
@@ -104,13 +91,7 @@ router.post('/:guildId/control', checkAuth, async (req, res) => {
     const { action, query, volume } = req.body;
     const guildId = req.params.guildId;
 
-    let player = null;
-    for (const node of shoukaku.nodes.values()) {
-        if (node.players && node.players.has(guildId)) { // Added safety check
-            player = node.players.get(guildId);
-            break;
-        }
-    }
+    let player = shoukaku.players.get(guildId);
 
     // Connect logic is complex via REST, play safer to fail if not connected
     if (!player && action !== 'play') {
