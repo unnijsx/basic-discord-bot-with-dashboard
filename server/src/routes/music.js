@@ -16,10 +16,20 @@ router.get('/:guildId/status', checkAuth, (req, res) => {
     // However, players are usually stored in a map on the node.
     // A simpler way with Shoukaku wrapper might be needed, but raw access:
     let player = null;
+    console.log(`[DEBUG] Checking status for Guild: ${req.params.guildId}`);
+    console.log(`[DEBUG] Nodes count: ${shoukaku.nodes.size}`);
+
     for (const node of shoukaku.nodes.values()) {
-        if (node.players && node.players.has(req.params.guildId)) {
-            player = node.players.get(req.params.guildId);
-            break;
+        console.log(`[DEBUG] Node ${node.name} players: ${node.players ? node.players.size : 'undefined'}`);
+        if (node.players) {
+            // Log all player guild IDs for debugging
+            console.log(`[DEBUG] Node ${node.name} player GuildIDs:`, [...node.players.keys()]);
+
+            if (node.players.has(req.params.guildId)) {
+                player = node.players.get(req.params.guildId);
+                console.log(`[DEBUG] Found player for guild ${req.params.guildId} on node ${node.name}`);
+                break;
+            }
         }
     }
 
