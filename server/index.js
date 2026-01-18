@@ -1,5 +1,6 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
+require('./src/utils/set_ffmpeg_path'); // Explicitly set FFmpeg path
 // Main Server Entry - Restored .env path
 const express = require('express');
 const { Client, GatewayIntentBits } = require('discord.js');
