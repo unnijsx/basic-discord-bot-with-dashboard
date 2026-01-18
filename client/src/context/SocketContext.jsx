@@ -9,7 +9,9 @@ export const SocketProvider = ({ children }) => {
     const [socket, setSocket] = useState(null);
 
     useEffect(() => {
-        const newSocket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000', {
+        // Use relative path so it goes through Vercel proxy
+        const newSocket = io({
+            path: '/socket.io',
             withCredentials: true,
             transports: ['polling', 'websocket']
         });

@@ -28,7 +28,8 @@ const BackupsManager = ({ guildId }) => {
         // We assume the user has a valid session/cookie for auth
         // If api.defaults.baseURL is relative (e.g. /api), we need full path or letting browser handle it.
         // Since we enabled credentials, we can just open the URL.
-        const url = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/guilds/${guildId}/backup`;
+        // Since we enabled credentials, we can just open the URL.
+        const url = `/api/guilds/${guildId}/backup`;
         window.open(url, '_blank');
         message.success('Download started');
     };

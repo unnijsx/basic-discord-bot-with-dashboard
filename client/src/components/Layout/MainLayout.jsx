@@ -132,7 +132,7 @@ const MainLayout = () => {
                 key: 'logout',
                 label: 'Logout',
                 icon: <LogoutOutlined />,
-                onClick: () => window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/logout`
+                onClick: () => window.location.href = '/api/auth/logout'
             }
         ]
     };
