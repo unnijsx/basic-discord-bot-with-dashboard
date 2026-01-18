@@ -180,15 +180,21 @@ router.post('/guilds/:guildId/messages', async (req, res) => {
 
         const payload = {};
         if (content) payload.content = content;
-        if (embed) {
+        if (embed && Object.keys(embed).length > 0) {
             const embedObj = new EmbedBuilder();
-            if (embed.title) embedObj.setTitle(embed.title);
-            if (embed.description) embedObj.setDescription(embed.description);
+            // Ensure strings are passed to setTitle/setDescription
+            if (embed.title) embedObj.setTitle(String(embed.title));
+            if (embed.description) embedObj.setDescription(String(embed.description));
             if (embed.color) embedObj.setColor(embed.color);
             if (embed.image) embedObj.setImage(embed.image);
             if (embed.thumbnail) embedObj.setThumbnail(embed.thumbnail);
-            if (embed.footer) embedObj.setFooter({ text: embed.footer });
-            payload.embeds = [embedObj];
+            if (embed.footer) embedObj.setFooter({ text: String(embed.footer) });
+
+            // Validate: Don't send empty embeds
+            const hasContent = embed.title || embed.description || embed.image || embed.thumbnail || embed.footer;
+            if (hasContent) {
+                payload.embeds = [embedObj];
+            }
         }
 
         // Support raw components payload (e.g. ActionRow with Buttons)
