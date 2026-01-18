@@ -159,6 +159,10 @@ mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/discord-bot
 // Basic API Route
 app.use('/api', apiRoutes);
 
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', time: new Date().toISOString() });
+});
+
 app.get('/', (req, res) => {
     res.send('Discord Bot Platform API is running');
 });
