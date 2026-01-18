@@ -83,63 +83,27 @@ app.use(cors({
 app.use(cookieParser());
 
 // Inject Bot Client
-// Inject Bot Client & Socket.io
+// Music Player Setup (Lavalink / Shoukaku)
+const { Shoukaku } = require('shoukaku');
+const { Nodes, ShoukakuOptions, Connector } = require('./src/utils/lavalinkClient');
+
+// Initialize Shoukaku
+const shoukaku = new Shoukaku(new Connector(client), Nodes, ShoukakuOptions);
+client.shoukaku = shoukaku; // Attach to client for commands
+
+shoukaku.on('error', (_, error) => console.error('❌ [Lavalink] Error:', error));
+shoukaku.on('close', (name, code, reason) => console.warn(`⚠️ [Lavalink] Node ${name} closed: ${code} ${reason}`));
+shoukaku.on('disconnect', (name, players, moved) => console.warn(`⚠️ [Lavalink] Node ${name} disconnected`));
+shoukaku.on('ready', (name) => console.log(`✅ [Lavalink] Node ${name} is ready`));
+
+// Inject Bot Client & Shoukaku
 app.use((req, res, next) => {
     req.botClient = client;
-    req.io = io;
-    console.log(`[HTTP] ${req.method} ${req.url}`); // Log requests to Live Console
+    req.shoukaku = shoukaku;
+    req.io = io; // Keep IO for live logs
+    console.log(`[HTTP] ${req.method} ${req.url}`);
     next();
 });
-
-// Music Player Setup
-const { Player } = require('discord-player');
-const { DefaultExtractors } = require('@discord-player/extractor');
-
-const player = new Player(client);
-const PlayDLExtractor = require('./src/bot/extractors/PlayDLExtractor');
-
-// Register extractors (YouTube, Spotify, etc.) and debug
-(async () => {
-    try {
-        await player.extractors.register(PlayDLExtractor, {});
-        console.log('✅ Play-DL Extractor registered');
-    } catch (e) { console.log('Failed to register PlayDL:', e); }
-
-    await player.extractors.loadMulti(DefaultExtractors);
-    console.log('✅ Default Music Extractors loaded');
-    // console.log(player.scanDeps()); // Uncomment if you need detailed dependency report
-})();
-
-// Debug Mode (Optional, uncomment if needed)
-// player.events.on('debug', (queue, msg) => console.log(`[${queue.guild.name} DEBUG] ${msg}`));
-// player.on('debug', msg => console.log(`[PLAYER DEBUG] ${msg}`));
-
-// Player Events (Optional: Add more logs)
-player.events.on('playerStart', (queue, track) => {
-    queue.metadata.channel.send(`🎶 | Now playing **${track.title}**!`);
-    io.to(queue.guild.id).emit('playerUpdate', { status: 'playing', track });
-});
-
-player.events.on('audioTrackAdd', (queue, track) => {
-    io.to(queue.guild.id).emit('queueUpdate', { action: 'add', track });
-});
-
-player.events.on('playerPause', (queue) => {
-    io.to(queue.guild.id).emit('playerUpdate', { status: 'paused' });
-});
-
-player.events.on('playerResume', (queue) => {
-    io.to(queue.guild.id).emit('playerUpdate', { status: 'playing' });
-});
-
-player.events.on('error', (queue, error) => {
-    console.log(`[${queue.guild.name}] Error emitted from the queue: ${error.message}`);
-});
-
-player.events.on('playerError', (queue, error) => {
-    console.log(`[${queue.guild.name}] Player Error emitted from the queue: ${error.message}`);
-});
-
 // Load Bot Events and Commands
 require('./src/bot/handler')(client);
 

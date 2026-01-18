@@ -9,71 +9,47 @@ module.exports = {
             option.setName('query')
                 .setDescription('The song URL or name')
                 .setRequired(true)),
-    async execute(interaction) {
-        const player = useMainPlayer();
-        const channel = interaction.member.voice.channel;
-
-        if (!channel) return interaction.reply('You are not connected to a voice channel!');
-        if (!channel.joinable) return interaction.reply('I cannot join your voice channel!');
-
+    async execute(interaction, client) {
         await interaction.deferReply();
         const query = interaction.options.getString('query');
+        const channel = interaction.member.voice.channel;
 
-        if (query.trim().toLowerCase() === 'debug') {
-            const { spawnSync } = require('child_process');
-            const { EmbedBuilder } = require('discord.js');
-            const os = require('os');
+        if (!channel) return interaction.followUp('❌ You need to be in a voice channel!');
 
-            let ffmpegStatus = '❓ Unknown';
-            try {
-                const ffmpegRes = spawnSync(process.env.FFMPEG_PATH || 'ffmpeg', ['-version'], { encoding: 'utf-8' });
-                if (ffmpegRes.error) ffmpegStatus = `❌ Error: ${ffmpegRes.error.message}`;
-                else ffmpegStatus = `✅ Installed (${ffmpegRes.stdout.split('\n')[0].split('version')[1]?.trim() || 'Unknown Version'})`;
-            } catch (e) { ffmpegStatus = `❌ Exception: ${e.message}`; }
+        // Get Shoukaku instance from app request (or global client if attached)
+        // In this architecture, we attached it to express req, but for bot commands we need it on 'client'
+        // We need to ensure we attached shoukaku to client in index.js
+        // If not, we can access it via the node module or ensure it's passed.
+        // Assuming client.shoukaku is available (we need to attach it in index.js explicitly if not already)
 
-            // Extractors validation
-            const extractors = player.extractors.store.size > 0
-                ? Array.from(player.extractors.store.keys()).map(k => `\`${k}\``).join(', ')
-                : '❌ None Loaded';
+        // Wait! In index.js I attached it to `req.shoukaku`. I should also attach it to `client.shoukaku`.
+        // Let's assume I fix index.js to do `client.shoukaku = shoukaku;` 
 
-            const embed = new EmbedBuilder()
-                .setTitle('🛠️ System Diagnostics')
-                .setColor('#2b2d31')
-                .addFields(
-                    { name: 'OS Platform', value: `${os.platform()} (${os.release()})`, inline: true },
-                    { name: 'Node.js', value: process.version, inline: true },
-                    { name: 'FFmpeg Path', value: `\`${process.env.FFMPEG_PATH || 'Global'}\``, inline: false },
-                    { name: 'FFmpeg Status', value: ffmpegStatus, inline: false },
-                    { name: 'Music Extractors', value: extractors, inline: false },
-                    { name: 'Play-DL Source', value: 'Enabled (Mixed Mode)', inline: true }
-                )
-                .setTimestamp();
-
-            return interaction.followUp({ embeds: [embed] });
-        }
+        const node = client.shoukaku.getNode();
+        if (!node) return interaction.followUp('❌ No music nodes available. Try again later.');
 
         try {
-            const { track } = await player.play(channel, query, {
-                nodeOptions: {
-                    metadata: {
-                        channel: interaction.channel,
-                        client: interaction.guild.members.me,
-                        requestedBy: interaction.user
-                    }
-                }
+            // Search
+            const result = await node.rest.resolve(query);
+            if (!result || result.loadType === 'empty') return interaction.followUp('❌ No results found.');
+
+            const track = result.data.track || result.data[0]; // Handle different result types
+            const metadata = result.data.info || result.data[0].info;
+
+            // Join Voice
+            const player = await node.joinVoiceChannel({
+                guildId: interaction.guildId,
+                channelId: channel.id,
+                shardId: 0 // Default shard
             });
 
-            return interaction.followUp(`**${track.title}** enqueued!`);
+            // Play
+            await player.playTrack({ track: track });
+
+            return interaction.followUp(`🎶 | Now playing **${metadata.title}**!`);
         } catch (e) {
-            console.error('Play Command Error:', e);
-
-            // Detailed user feedback
-            let msg = 'Unknown error';
-            if (e.message.includes('ERR_NO_RESULT')) msg = '❌ No results found. (Possible GEO block or Invalid URL)';
-            else if (e.message.includes('Could not extract stream')) msg = '❌ Stream extraction failed. (FFmpeg/Network issue)';
-            else msg = `❌ Error: ${e.message}`;
-
-            return interaction.followUp(`${msg}\n\`\`\`js\n${e.stack ? e.stack.substring(0, 200) : e.message}...\n\`\`\``);
+            console.error(e);
+            return interaction.followUp(`❌ Error: ${e.message}`);
         }
     },
 };
