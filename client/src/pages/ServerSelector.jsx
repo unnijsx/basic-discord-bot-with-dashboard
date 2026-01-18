@@ -3,6 +3,8 @@ import { Card, Row, Col, Button, Spin, Avatar, Typography } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import styled from 'styled-components';
+import { useAuth } from '../context/AuthContext';
+import { ThunderboltOutlined } from '@ant-design/icons';
 
 const { Title } = Typography;
 
@@ -27,6 +29,7 @@ const GuildCard = styled(Card).attrs({ variant: "borderless" })`
 `;
 
 const ServerSelector = () => {
+    const { user } = useAuth();
     const [guilds, setGuilds] = useState([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
@@ -53,7 +56,20 @@ const ServerSelector = () => {
 
     return (
         <Container>
-            <Title level={2} style={{ color: '#fff', textAlign: 'center', marginBottom: '40px' }}>Select a Server</Title>
+            <div style={{ textAlign: 'center', marginBottom: '40px', position: 'relative' }}>
+                <Title level={2} style={{ color: '#fff', display: 'inline-block' }}>Select a Server</Title>
+                {user?.isSuperAdmin && (
+                    <Button
+                        type="primary"
+                        danger
+                        icon={<ThunderboltOutlined />}
+                        style={{ position: 'absolute', right: 0, top: 0 }}
+                        onClick={() => navigate('/super-admin')}
+                    >
+                        Super Admin
+                    </Button>
+                )}
+            </div>
             <Row gutter={[24, 24]}>
                 {guilds.map(guild => (
                     <Col xs={24} sm={12} md={8} lg={6} key={guild.id}>

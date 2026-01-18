@@ -22,7 +22,9 @@ router.get('/logout', (req, res) => {
 // Get Current User
 router.get('/me', (req, res) => {
     if (req.user) {
-        res.json(req.user);
+        const superAdmins = (process.env.SUPER_ADMIN_IDS || '').split(',');
+        const isSuperAdmin = superAdmins.includes(req.user.id);
+        res.json({ ...req.user, isSuperAdmin });
     } else {
         res.status(401).json({ message: 'Unauthorized' });
     }

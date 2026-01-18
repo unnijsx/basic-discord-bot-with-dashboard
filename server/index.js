@@ -1,5 +1,6 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
+// Main Server Entry - Restored .env path
 const express = require('express');
 const { Client, GatewayIntentBits } = require('discord.js');
 const mongoose = require('mongoose');
@@ -91,12 +92,16 @@ player.events.on('playerError', (queue, error) => {
     console.log(`[${queue.guild.name}] Player Error emitted from the queue: ${error.message}`);
 });
 
-client.once('ready', () => {
-    console.log(`🤖 Bot logged in as ${client.user.tag}`);
-});
-
 // Load Bot Events and Commands
 require('./src/bot/handler')(client);
+
+// Initialize Scheduler
+const scheduler = require('./src/utils/scheduler');
+
+client.once('ready', () => {
+    console.log(`🤖 Bot logged in as ${client.user.tag}`);
+    scheduler.init(client);
+});
 
 // Session Setup
 const session = require('express-session');
@@ -127,9 +132,11 @@ const apiRoutes = require('./src/routes/api');
 const musicRoutes = require('./src/routes/music');
 
 app.use('/api/auth', authRoutes);
-app.use('/api/guilds', apiRoutes);
 app.use('/api/config', configRoutes);
+app.use('/api/modules', require('./src/routes/modules'));
+app.use('/api/stats', require('./src/routes/analytics'));
 app.use('/api/music', musicRoutes);
+app.use('/api/admin', require('./src/routes/admin'));
 
 // Database Connection
 mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/discord-bot-platform')

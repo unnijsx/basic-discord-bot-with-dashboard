@@ -63,7 +63,8 @@ const Login = () => {
     const { appName, appLogo, themeColor } = useBranding();
 
     const handleLogin = () => {
-        window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/discord`;
+        const baseURL = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:5000');
+        window.location.href = `${baseURL}/api/auth/discord`;
     };
 
     return (

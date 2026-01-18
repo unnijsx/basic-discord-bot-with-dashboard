@@ -37,7 +37,29 @@ const GuildSchema = new mongoose.Schema({
         autoRoleId: { type: String }
     },
     // Store active subscriptions or premium status
-    isPremium: { type: Boolean, default: false }
+    isPremium: { type: Boolean, default: false },
+
+    // Guild-Specific Maintenance & Features
+    maintenanceMode: { type: Boolean, default: false },
+    maintenanceReason: { type: String, default: 'This server is currently in maintenance mode.' },
+
+    // Granular Feature Flags (Local Kill Switches)
+    features: {
+        moderation: { type: Boolean, default: true },
+        leveling: { type: Boolean, default: true },
+        music: { type: Boolean, default: true },
+        logging: { type: Boolean, default: true },
+        welcome: { type: Boolean, default: true }
+    },
+
+    // Onboarding Status
+    configured: { type: Boolean, default: false },
+
+    // Data Retention Policies (GDPR/Safety)
+    dataRetention: {
+        logsDays: { type: Number, default: 30 }, // Auto-purge after 30 days
+        analyticsDays: { type: Number, default: 90 }
+    }
 });
 
 module.exports = mongoose.model('Guild', GuildSchema);

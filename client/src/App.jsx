@@ -11,6 +11,12 @@ import Music from './pages/modules/Music';
 import Logging from './pages/modules/Logging';
 import EmbedBuilder from './pages/modules/EmbedBuilder';
 import ServerManagement from './pages/modules/ServerManagement';
+import FormBuilder from './pages/modules/FormBuilder';
+import ScheduledMessages from './pages/modules/ScheduledMessages';
+import ServerAnalytics from './pages/ServerAnalytics';
+import AuditLogs from './pages/modules/AuditLogs';
+import DataPrivacy from './pages/DataPrivacy';
+import SuperAdmin from './pages/SuperAdmin';
 import { AuthProvider } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -27,6 +33,7 @@ const App = () => {
 
               {/* Protected Routes */}
               <Route path="/dashboard" element={<ProtectedRoute><ServerSelector /></ProtectedRoute>} />
+              <Route path="/super-admin" element={<ProtectedRoute><SuperAdmin /></ProtectedRoute>} />
 
               <Route
                 path="/dashboard/:guildId"
@@ -37,13 +44,17 @@ const App = () => {
                 }
               >
                 <Route index element={<DashboardHome />} />
+                <Route path="analytics" element={<ServerAnalytics />} />
+                <Route path="logs" element={<AuditLogs />} />
+                <Route path="privacy" element={<DataPrivacy />} />
                 <Route path="moderation" element={<Moderation />} />
                 <Route path="leveling" element={<Leveling />} />
                 <Route path="music" element={<Music />} />
                 <Route path="logging" element={<Logging />} />
                 <Route path="messages" element={<EmbedBuilder />} />
                 <Route path="management" element={<ServerManagement />} />
-                {/* Reusing Moderation or creating a generic Settings page? For now, let's point to a placeholder or reuse one */}
+                <Route path="forms" element={<FormBuilder />} />
+                <Route path="scheduled-messages" element={<ScheduledMessages />} />
                 <Route path="settings" element={<Moderation />} />
               </Route>
             </Routes>

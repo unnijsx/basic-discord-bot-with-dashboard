@@ -2,6 +2,28 @@ const router = require('express').Router();
 const Guild = require('../models/Guild');
 const { EmbedBuilder } = require('discord.js');
 const Level = require('../models/Level');
+const { logAction } = require('../utils/auditLogger');
+const AuditLog = require('../models/AuditLog');
+
+// Get Guild Basic Info
+router.get('/guilds/:guildId', async (req, res) => {
+    try {
+        const settings = await Guild.findOne({ guildId: req.params.guildId });
+        if (!settings) {
+            // Optional: Create if not exists, or return 404
+            const newSettings = new Guild({
+                guildId: req.params.guildId,
+                name: 'Unknown',
+                ownerId: 'Unknown'
+            });
+            await newSettings.save();
+            return res.json(newSettings);
+        }
+        res.json(settings);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
 // Get Guild Settings
 router.get('/guilds/:guildId/settings', async (req, res) => {
@@ -33,6 +55,36 @@ router.put('/guilds/:guildId/settings', async (req, res) => {
         if (levelingConfig) updateData.levelingConfig = levelingConfig;
         if (loggingConfig) updateData.loggingConfig = loggingConfig;
         if (req.body.welcomeConfig) updateData.welcomeConfig = req.body.welcomeConfig;
+
+        const settings = await Guild.findOneAndUpdate(
+            { guildId: req.params.guildId },
+            { $set: updateData },
+            { new: true, upsert: true }
+        );
+
+        // Audit Log
+        if (req.user) {
+            logAction(req.params.guildId, 'UPDATE_SETTINGS', req.user, updateData);
+        }
+
+        res.json(settings);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Save Onboarding Config
+router.put('/guilds/:guildId/onboarding', async (req, res) => {
+    try {
+        const { modules, preset } = req.body;
+
+        // Apply presets and mark as configured
+        const updateData = {
+            configured: true,
+            modules: modules,
+            // You could store the preset name purely for analytics if desired
+            // preset: preset 
+        };
 
         const settings = await Guild.findOneAndUpdate(
             { guildId: req.params.guildId },
@@ -139,6 +191,12 @@ router.post('/guilds/:guildId/messages', async (req, res) => {
             payload.embeds = [embedObj];
         }
 
+        // Support raw components payload (e.g. ActionRow with Buttons)
+        if (req.body.components) {
+            // We assume the client sends valid JSON structure for components
+            payload.components = req.body.components;
+        }
+
         await channel.send(payload);
         res.json({ success: true });
     } catch (err) {
@@ -198,6 +256,74 @@ router.delete('/guilds/:guildId/channels/:channelId', async (req, res) => {
         if (channel) await channel.delete();
         res.json({ success: true });
     } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// =======================
+// BACKUP SYSTEM
+// =======================
+
+// Export Backup
+router.get('/guilds/:guildId/backup', async (req, res) => {
+    try {
+        const settings = await Guild.findOne({ guildId: req.params.guildId }, { _id: 0, __v: 0 }).lean();
+        if (!settings) return res.status(404).json({ message: 'Guild data not found' });
+
+        const backupData = {
+            version: '1.0',
+            timestamp: new Date().toISOString(),
+            data: settings
+        };
+
+        res.setHeader('Content-Disposition', `attachment; filename=backup-${req.params.guildId}-${Date.now()}.json`);
+        res.setHeader('Content-Type', 'application/json');
+        res.send(JSON.stringify(backupData, null, 2));
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Restore Backup
+router.post('/guilds/:guildId/backup', async (req, res) => {
+    try {
+        const { data } = req.body;
+        if (!data || !data.guildId) return res.status(400).json({ message: 'Invalid backup file' });
+
+        if (data.guildId !== req.params.guildId) {
+            return res.status(400).json({ message: 'Backup file belongs to a different server!' });
+        }
+
+        // Restore settings (Upsert)
+        // We delete _id to avoid collision if present, though we excluded it in export
+        delete data._id;
+
+        await Guild.findOneAndUpdate(
+            { guildId: req.params.guildId },
+            { $set: data },
+            { new: true, upsert: true }
+        );
+
+        // Audit Log
+        if (req.user) {
+            logAction(req.params.guildId, 'RESTORE_BACKUP', req.user, { timestamp: new Date() });
+        }
+
+        res.json({ success: true, message: 'Backup restored successfully' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Get Audit Logs
+router.get('/guilds/:guildId/audit-logs', async (req, res) => {
+    try {
+        const logs = await AuditLog.find({ guildId: req.params.guildId })
+            .sort({ timestamp: -1 })
+            .limit(100);
+        res.json(logs);
+    } catch (err) {
+        console.error('Audit Log Fetch Error:', err);
         res.status(500).json({ error: err.message });
     }
 });

@@ -16,6 +16,16 @@ module.exports = {
     async execute(message) {
         if (message.author.bot) return;
 
+        // --- Analytics ---
+        const analytics = require('../../utils/analytics');
+        analytics.trackMessage(message.guild?.id, message.author.id);
+
+        // --- Maintenance Check ---
+        // We pass message.guild.id, but for messages we fail silently (don't spam chat)
+        const { checkMaintenance } = require('../../utils/maintenance');
+        const maintenance = await checkMaintenance(message.guild?.id, message.author.id);
+        if (maintenance.active) return;
+
         // Fetch Guild Settings
         let guildSettings = await Guild.findOne({ guildId: message.guild.id });
         if (!guildSettings) {
@@ -37,6 +47,11 @@ module.exports = {
                 try {
                     await message.delete();
                     const warningMsg = await message.channel.send(`${message.author}, watch your language! ⚠️`);
+
+                    // Log to Audit Log
+                    const { logAction } = require('../../utils/auditLogger');
+                    logAction(message.guild.id, 'AUTO_MOD_DELETE', { id: 'BOT', username: 'AutoMod' }, { content: content, word: foundBadWord, userId: message.author.id });
+
                     setTimeout(() => warningMsg.delete().catch(() => { }), 5000);
                     return; // Stop processing if message deleted
                 } catch (error) {
@@ -126,9 +141,20 @@ module.exports = {
                         const channel = channelId ? message.guild.channels.cache.get(channelId) : message.channel;
 
                         if (channel) {
-                            let msg = guildSettings.levelingConfig.levelUpMessage || 'Congratulations {user}, you reached level {level}!';
-                            msg = msg.replace('{user}', message.author.toString()).replace('{level}', userLevel.level);
-                            channel.send(msg);
+                            let msgText = guildSettings.levelingConfig.levelUpMessage || 'Congratulations {user}, you reached level {level}!';
+                            msgText = msgText.replace('{user}', message.author.toString()).replace('{level}', userLevel.level);
+
+                            // Send proper Embed
+                            const { EmbedBuilder } = require('discord.js');
+                            const levelEmbed = new EmbedBuilder()
+                                .setColor('#5865F2')
+                                .setTitle('🎉 Level Up!')
+                                .setDescription(msgText)
+                                .setThumbnail(message.author.displayAvatarURL({ dynamic: true }))
+                                .setFooter({ text: `Keep chatting to reach level ${userLevel.level + 1}!` })
+                                .setTimestamp();
+
+                            channel.send({ content: `${message.author}`, embeds: [levelEmbed] });
                         }
                     }
 
