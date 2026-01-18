@@ -15,9 +15,15 @@ const server = http.createServer(app);
 const PORT = process.env.PORT || 5000;
 
 // Socket.io Setup
+const allowedOrigins = [
+    'http://localhost:5173',
+    'https://basic-discord-bot-with-dashboard.vercel.app'
+];
+
+// Socket.io Setup
 const io = new Server(server, {
     cors: {
-        origin: 'http://localhost:5173',
+        origin: allowedOrigins,
         credentials: true
     }
 });
@@ -44,7 +50,7 @@ const client = new Client({
 // Middleware
 app.use(express.json());
 app.use(cors({
-    origin: 'http://localhost:5173', // Vite default port
+    origin: allowedOrigins,
     credentials: true
 }));
 app.use(cookieParser());
