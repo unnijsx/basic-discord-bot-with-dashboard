@@ -94,9 +94,11 @@ class PlayDLExtractor extends BaseExtractor {
         // For SoundCloud, play-dl handles it
 
         try {
+            console.log(`[PlayDL] Attempting to stream: ${url}`);
             const stream = await play.stream(url, {
                 discordPlayerCompatibility: true
             });
+            console.log(`[PlayDL] Stream created. Type: ${stream.type}`);
             return stream.stream;
         } catch (error) {
             console.error('PlayDL Stream Error:', error);
