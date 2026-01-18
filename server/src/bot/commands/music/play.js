@@ -19,7 +19,7 @@ module.exports = {
         await interaction.deferReply();
         const query = interaction.options.getString('query');
 
-        if (query.toLowerCase() === 'debug') {
+        if (query.trim().toLowerCase() === 'debug') {
             const { spawnSync } = require('child_process');
             const { EmbedBuilder } = require('discord.js');
             const os = require('os');
