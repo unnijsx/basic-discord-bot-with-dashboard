@@ -69,12 +69,17 @@ const { Player } = require('discord-player');
 const { DefaultExtractors } = require('@discord-player/extractor');
 
 const player = new Player(client);
+const PlayDLExtractor = require('./src/bot/extractors/PlayDLExtractor');
 
-// Register extractors (YouTube, Spotify, etc.)
 // Register extractors (YouTube, Spotify, etc.) and debug
 (async () => {
+    try {
+        await player.extractors.register(PlayDLExtractor, {});
+        console.log('✅ Play-DL Extractor registered');
+    } catch (e) { console.log('Failed to register PlayDL:', e); }
+
     await player.extractors.loadMulti(DefaultExtractors);
-    console.log('✅ Music Extractors loaded');
+    console.log('✅ Default Music Extractors loaded');
     // console.log(player.scanDeps()); // Uncomment if you need detailed dependency report
 })();
 
