@@ -2,16 +2,22 @@ const { Connectors } = require('shoukaku');
 
 const Nodes = [
     {
-        name: 'Public Node 1',
-        url: 'node.raiden.gg:5500', // Example public node, can be replaced via ENV
+        name: 'Public-Raiden',
+        url: 'node.raiden.gg:5500',
         auth: 'everyone',
         secure: false
     },
     {
-        name: 'Public Node 2',
-        url: 'lavalink.myracloud.com:2333',
-        auth: 'youshallnotpass',
-        secure: false
+        name: 'Public-LavalinkDE',
+        url: 'lavalink.kulwinder.de:443',
+        auth: 'kulwinder',
+        secure: true
+    },
+    {
+        name: 'Public-Ajie',
+        url: 'lavalink.ajieblogs.eu.org:443',
+        auth: 'https://ajieblogs.eu.org',
+        secure: true
     }
 ];
 

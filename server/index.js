@@ -88,6 +88,7 @@ const { Shoukaku } = require('shoukaku');
 const { Nodes, ShoukakuOptions, Connector } = require('./src/utils/lavalinkClient');
 
 // Initialize Shoukaku
+console.log('⏳ [Lavalink] Initializing Client...');
 const shoukaku = new Shoukaku(new Connector(client), Nodes, ShoukakuOptions);
 client.shoukaku = shoukaku; // Attach to client for commands
 
