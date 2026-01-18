@@ -2,22 +2,22 @@ const { Connectors } = require('shoukaku');
 
 const Nodes = [
     {
-        name: 'Public-Raiden',
-        url: 'node.raiden.gg:5500',
-        auth: 'everyone',
+        name: 'Jirayu-SSL',
+        url: 'lavalink.jirayu.net:443',
+        auth: 'youshallnotpass',
+        secure: true
+    },
+    {
+        name: 'Serenetia-v4',
+        url: 'lavalinkv4.serenetia.com:443',
+        auth: 'https://dsc.gg/ajidevserver',
+        secure: true
+    },
+    {
+        name: 'Jirayu-NonSSL',
+        url: 'lavalink.jirayu.net:13592',
+        auth: 'youshallnotpass',
         secure: false
-    },
-    {
-        name: 'Public-LavalinkDE',
-        url: 'lavalink.kulwinder.de:443',
-        auth: 'kulwinder',
-        secure: true
-    },
-    {
-        name: 'Public-Ajie',
-        url: 'lavalink.ajieblogs.eu.org:443',
-        auth: 'https://ajieblogs.eu.org',
-        secure: true
     }
 ];
 

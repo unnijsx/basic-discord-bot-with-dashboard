@@ -34,11 +34,42 @@ module.exports = {
                 if (interaction.replied || interaction.deferred) await interaction.followUp(errorMessage);
                 else await interaction.reply(errorMessage);
             }
-            return;
         }
 
-        // --- Handle Buttons (Form Triggers) ---
+
+        // --- Handle Buttons (Music & Forms) ---
         if (interaction.isButton()) {
+            // Music Buttons
+            if (interaction.customId.startsWith('music_')) {
+                const { customId, guildId, client } = interaction;
+                await interaction.deferUpdate();
+
+                const player = client.shoukaku.players.get(guildId);
+                const queue = client.queue?.get(guildId);
+
+                if (!player) return; // Ignore if no player
+
+                switch (customId) {
+                    case 'music_pause':
+                        const isPausing = !player.paused;
+                        await player.setPaused(isPausing);
+                        // Optional: Edit message to show status?
+                        break;
+                    case 'music_skip':
+                        await player.stopTrack();
+                        break;
+                    case 'music_stop':
+                        client.shoukaku.leaveVoiceChannel(guildId);
+                        if (queue) {
+                            queue.tracks = []; // Clear queue
+                            queue.current = null;
+                        }
+                        break;
+                }
+                return;
+            }
+
+            // Form Buttons
             if (interaction.customId.startsWith('form_open_')) {
                 const formId = interaction.customId.split('_')[2];
                 await handleFormOpen(interaction, formId);
