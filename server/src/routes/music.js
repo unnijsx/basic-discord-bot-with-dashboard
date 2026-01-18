@@ -17,7 +17,7 @@ router.get('/:guildId/status', checkAuth, (req, res) => {
     // A simpler way with Shoukaku wrapper might be needed, but raw access:
     let player = null;
     for (const node of shoukaku.nodes.values()) {
-        if (node.players.has(req.params.guildId)) {
+        if (node.players && node.players.has(req.params.guildId)) {
             player = node.players.get(req.params.guildId);
             break;
         }
@@ -96,7 +96,7 @@ router.post('/:guildId/control', checkAuth, async (req, res) => {
 
     let player = null;
     for (const node of shoukaku.nodes.values()) {
-        if (node.players.has(guildId)) {
+        if (node.players && node.players.has(guildId)) { // Added safety check
             player = node.players.get(guildId);
             break;
         }
