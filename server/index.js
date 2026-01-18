@@ -152,7 +152,7 @@ app.use('/api/music', musicRoutes);
 app.use('/api/admin', require('./src/routes/admin'));
 
 // Database Connection
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/discord-bot-platform')
+mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/discord-bot-platform', { family: 4 })
     .then(() => console.log('✅ MongoDB Connected'))
     .catch(err => console.error('❌ MongoDB Connection Error:', err));
 
