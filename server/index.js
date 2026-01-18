@@ -87,6 +87,7 @@ app.use(cookieParser());
 app.use((req, res, next) => {
     req.botClient = client;
     req.io = io;
+    console.log(`[HTTP] ${req.method} ${req.url}`); // Log requests to Live Console
     next();
 });
 
