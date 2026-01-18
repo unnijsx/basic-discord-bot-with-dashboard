@@ -71,7 +71,16 @@ const { DefaultExtractors } = require('@discord-player/extractor');
 const player = new Player(client);
 
 // Register extractors (YouTube, Spotify, etc.)
-player.extractors.loadMulti(DefaultExtractors);
+// Register extractors (YouTube, Spotify, etc.) and debug
+(async () => {
+    await player.extractors.loadMulti(DefaultExtractors);
+    console.log('✅ Music Extractors loaded');
+    // console.log(player.scanDeps()); // Uncomment if you need detailed dependency report
+})();
+
+// Debug Mode (Optional, uncomment if needed)
+// player.events.on('debug', (queue, msg) => console.log(`[${queue.guild.name} DEBUG] ${msg}`));
+// player.on('debug', msg => console.log(`[PLAYER DEBUG] ${msg}`));
 
 // Player Events (Optional: Add more logs)
 player.events.on('playerStart', (queue, track) => {

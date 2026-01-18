@@ -32,8 +32,8 @@ module.exports = {
 
             return interaction.followUp(`**${track.title}** enqueued!`);
         } catch (e) {
-            console.error(e);
-            return interaction.followUp(`Something went wrong: ${e.message ? e.message.substring(0, 100) : 'Unknown error'}... (Check console for details)`);
+            console.error('Play Command Error:', e);
+            return interaction.followUp(`Something went wrong: ${e.message} (Check console)`);
         }
     },
 };
