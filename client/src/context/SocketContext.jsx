@@ -13,7 +13,7 @@ export const SocketProvider = ({ children }) => {
         const newSocket = io({
             path: '/socket.io',
             withCredentials: true,
-            transports: ['polling', 'websocket']
+            transports: ['polling']
         });
 
         setSocket(newSocket);
