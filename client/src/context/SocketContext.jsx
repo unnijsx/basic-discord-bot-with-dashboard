@@ -16,6 +16,12 @@ export const SocketProvider = ({ children }) => {
             transports: ['polling']
         });
 
+        // Live Console Listener
+        newSocket.on('server_log', (data) => {
+            const style = data.type === 'error' ? 'background: #ffcccc; color: red' : 'background: #ccffcc; color: green';
+            console.log(`%c[SERVER] ${data.message}`, style);
+        });
+
         setSocket(newSocket);
 
         return () => newSocket.close();

@@ -7,6 +7,7 @@ const { Client, GatewayIntentBits } = require('discord.js');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const util = require('util'); // For inspecting objects
 
 const http = require('http');
 const { Server } = require('socket.io');
@@ -30,8 +31,32 @@ const io = new Server(server, {
     }
 });
 
+// --- LIVE CONSOLE LOGS ---
+const originalLog = console.log;
+const originalError = console.error;
+
+function broadcastLog(type, args) {
+    try {
+        // Convert args to string
+        const message = args.map(arg => (typeof arg === 'string' ? arg : util.inspect(arg))).join(' ');
+        io.to('admin-room').emit('server_log', { type, message, timestamp: new Date().toISOString() });
+    } catch (e) { /* Ignore logging errors */ }
+}
+
+console.log = (...args) => {
+    originalLog.apply(console, args);
+    broadcastLog('info', args);
+};
+
+console.error = (...args) => {
+    originalError.apply(console, args);
+    broadcastLog('error', args);
+};
+// -------------------------
+
 io.on('connection', (socket) => {
     // console.log('New client connected', socket.id);
+    socket.join('admin-room'); // Auto join admins to log room
     socket.on('joinGuild', (guildId) => {
         socket.join(guildId);
         // console.log(`Socket ${socket.id} joined guild ${guildId}`);
