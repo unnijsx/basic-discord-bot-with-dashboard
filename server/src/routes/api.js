@@ -8,17 +8,26 @@ const AuditLog = require('../models/AuditLog');
 // Get Guild Basic Info
 router.get('/guilds/:guildId', async (req, res) => {
     try {
-        const settings = await Guild.findOne({ guildId: req.params.guildId });
+        let settings = await Guild.findOne({ guildId: req.params.guildId }).lean();
         if (!settings) {
-            // Optional: Create if not exists, or return 404
-            const newSettings = new Guild({
+            settings = new Guild({
                 guildId: req.params.guildId,
                 name: 'Unknown',
                 ownerId: 'Unknown'
             });
-            await newSettings.save();
-            return res.json(newSettings);
+            await settings.save();
         }
+
+        // Fetch Live Data
+        const guild = req.botClient.guilds.cache.get(req.params.guildId);
+        if (guild) {
+            settings.memberCount = guild.memberCount;
+            settings.channelCount = guild.channels.cache.size;
+            settings.roleCount = guild.roles.cache.size;
+            settings.icon = guild.iconURL({ dynamic: true });
+            settings.name = guild.name; // accurate name
+        }
+
         res.json(settings);
     } catch (err) {
         res.status(500).json({ error: err.message });

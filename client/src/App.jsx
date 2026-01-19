@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { App as AntdApp } from 'antd';
+import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import MainLayout from './components/Layout/MainLayout';
 import DashboardHome from './pages/DashboardHome';
@@ -28,7 +29,7 @@ const App = () => {
         <SocketProvider>
           <Router>
             <Routes>
-              <Route path="/" element={<Navigate to="/login" replace />} />
+              <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
 
               {/* Protected Routes */}
