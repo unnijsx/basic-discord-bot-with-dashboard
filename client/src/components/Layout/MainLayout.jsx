@@ -95,6 +95,7 @@ const MainLayout = () => {
             children: [
                 { key: `/dashboard/${guildId}/moderation`, icon: <SafetyCertificateOutlined />, label: 'Moderation' },
                 { key: `/dashboard/${guildId}/music`, icon: <CustomerServiceOutlined />, label: 'Music' },
+                { key: `/dashboard/${guildId}/tickets`, icon: <DeploymentUnitOutlined />, label: 'Ticket System' },
                 { key: `/dashboard/${guildId}/analytics`, icon: <BarChartOutlined />, label: 'Analytics' },
                 { key: `/dashboard/${guildId}/logs`, icon: <FileTextOutlined />, label: 'Audit Logs' },
                 { type: 'divider' },
