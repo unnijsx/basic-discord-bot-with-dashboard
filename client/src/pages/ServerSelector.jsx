@@ -26,6 +26,10 @@ const ContentWrapper = styled.div`
     margin: 0 auto;
     position: relative;
     z-index: 1;
+
+    @media (max-width: 768px) {
+        padding: 20px 20px;
+    }
 `;
 
 /* Reuse Aurora Logic from Landing Page (optional, or just keep dark theme)

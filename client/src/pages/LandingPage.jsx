@@ -256,13 +256,13 @@ const LandingPage = () => {
               ✨ V2.0 is live with Advanced Analytics
             </span>
           </div>
-          <Title style={{ fontSize: 'clamp(3rem, 5vw, 5rem)', margin: '20px 0', color: '#fff', lineHeight: 1.1 }}>
+          <Title style={{ fontSize: 'clamp(2.5rem, 5vw, 5rem)', margin: '20px 0', color: '#fff', lineHeight: 1.1, padding: '0 10px' }}>
             The Only Bot You Need For <GradientText>Growth</GradientText>
           </Title>
-          <Paragraph style={{ fontSize: '1.25rem', color: '#b9bbbe', margin: '0 auto 40px auto', maxWidth: 600, lineHeight: 1.6 }}>
+          <Paragraph style={{ fontSize: 'clamp(1rem, 1.5vw, 1.25rem)', color: '#b9bbbe', margin: '0 auto 40px auto', maxWidth: 600, lineHeight: 1.6, padding: '0 20px' }}>
             Manage your diverse communities with a modular, highly customizable dashboard. Moderation, Music, Leveling, and more.
           </Paragraph>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 20, flexWrap: 'wrap' }}>
             <CtaButton type="primary" size="large" onClick={handleCta}>
               {user ? 'Open Dashboard' : 'Add to Discord'} <RightOutlined />
             </CtaButton>
