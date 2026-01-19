@@ -79,10 +79,9 @@ router.get('/:guildId/search', checkAuth, async (req, res) => {
         if (!result) return res.json([]);
 
         let tracks = [];
-        if (result.loadType === 'search' || result.loadType === 'track') {
-            tracks = [result.data]; // data is track info
-            if (Array.isArray(result.data)) tracks = result.data;
-        } else if (result.loadType === 'playlist') {
+        if (['search', 'SEARCH_RESULT', 'track', 'TRACK_LOADED'].includes(result.loadType)) {
+            tracks = Array.isArray(result.data) ? result.data : [result.data];
+        } else if (['playlist', 'PLAYLIST_LOADED'].includes(result.loadType)) {
             tracks = result.data.tracks;
         }
 
@@ -116,24 +115,81 @@ router.post('/:guildId/control', checkAuth, async (req, res) => {
     }
 
     try {
+        // For play action, we might not have a player yet, handled below
+        const guildQueue = req.botClient.queue?.get(guildId);
+
         switch (action) {
-            case 'pause': player?.setPaused(true); break;
-            case 'resume': player?.setPaused(false); break;
-            case 'skip': player?.stopTrack(); break; // Stop current track triggers next if queue (no queue yet)
+            case 'play': {
+                // Dashboard play request logic
+                // This mimics the /play command logic but via API
+                // We need to verify if the user is in a voice channel? 
+                // We can't easily check user VC here without Discord user ID context in req.user
+                // Assuming we play to the bot's current channel or fail
+                if (!player) return res.status(400).json({ message: 'Bot must be in voice channel to play via Dashboard' });
+
+                const node = shoukaku.options.nodeResolver(shoukaku.nodes);
+                const result = await node.rest.resolve(query);
+                if (!result || ['empty', 'error', 'NONE'].includes(result.loadType)) {
+                    return res.status(400).json({ message: 'No tracks found' });
+                }
+
+                let track;
+                let metadata;
+                if (['track', 'TRACK_LOADED'].includes(result.loadType)) {
+                    track = result.data.encoded;
+                    metadata = result.data.info;
+                } else if (['search', 'SEARCH_RESULT'].includes(result.loadType)) {
+                    track = result.data[0].encoded;
+                    metadata = result.data[0].info;
+                } else if (['playlist', 'PLAYLIST_LOADED'].includes(result.loadType)) {
+                    track = result.data.tracks[0].encoded;
+                    metadata = result.data.tracks[0].info;
+                    // TODO: Add whole playlist
+                }
+
+                const trackItem = { encoded: track, info: metadata, requester: { tag: 'Dashboard User', displayAvatarURL: () => '' } };
+
+                // If queue exists
+                if (guildQueue) {
+                    if (guildQueue.current) {
+                        guildQueue.tracks.push(trackItem);
+                    } else {
+                        guildQueue.current = trackItem;
+                        await player.playTrack({ track: { encoded: track } });
+                    }
+                    // Emit update
+                    req.io.to(guildId).emit('queueUpdate');
+                    req.io.to(guildId).emit('playerUpdate', { isPlaying: true });
+                }
+                break;
+            }
+            case 'pause':
+                player?.setPaused(true);
+                req.io.to(guildId).emit('playerUpdate', { isPlaying: false });
+                break;
+            case 'resume':
+                player?.setPaused(false);
+                req.io.to(guildId).emit('playerUpdate', { isPlaying: true });
+                break;
+            case 'skip':
+                player?.stopTrack();
+                break;
             case 'stop':
                 if (player) {
                     player.stopTrack();
-                    // Leave channel?
-                    // player.connection.disconnect(); // This might be needed
-                    // Typically usage: shoukaku.leaveVoiceChannel(guildId);
                     shoukaku.leaveVoiceChannel(guildId);
+                    if (guildQueue) {
+                        guildQueue.tracks = [];
+                        guildQueue.current = null;
+                    }
+                    req.io.to(guildId).emit('playerUpdate', { isPlaying: false, connected: false });
                 }
                 break;
             case 'volume':
                 if (typeof volume === 'number') player?.setGlobalVolume(volume);
                 break;
             default:
-                return res.status(400).json({ message: 'Invalid action / Play via Dashboard not supported yet (Use Discord)' });
+                return res.status(400).json({ message: 'Invalid action' });
         }
         res.json({ success: true });
     } catch (error) {
