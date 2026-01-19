@@ -38,12 +38,29 @@ router.get('/:guildId/status', checkAuth, (req, res) => {
     // Wait, let's simply report basic connected status for now to prevent crash.
     // Ideally we store the current track info in player.data when starting.
 
+    // Get Queue Data from Bot Memory
+    const guildQueue = req.botClient.queue?.get(req.params.guildId);
+    const currentTrack = guildQueue?.current?.info || null;
+    const queue = guildQueue?.tracks?.map(t => ({
+        title: t.info.title,
+        author: t.info.author,
+        duration: t.info.length ? new Date(t.info.length).toISOString().substr(14, 5) : 'Live',
+        url: t.info.uri,
+        thumbnail: t.info.artworkUrl || ''
+    })) || [];
+
     res.json({
-        isPlaying: !player.paused,
+        isPlaying: !player.paused && !!currentTrack,
         volume: player.volume,
         connected: true,
-        currentTrack: null, // TODO: Store track metadata in player custom data
-        queue: []
+        currentTrack: currentTrack ? {
+            title: currentTrack.title,
+            author: currentTrack.author,
+            duration: currentTrack.length ? new Date(currentTrack.length).toISOString().substr(14, 5) : 'Live',
+            thumbnail: currentTrack.artworkUrl || '',
+            url: currentTrack.uri
+        } : null,
+        queue: queue
     });
 });
 
