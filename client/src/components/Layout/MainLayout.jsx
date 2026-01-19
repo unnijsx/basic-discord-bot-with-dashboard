@@ -88,7 +88,7 @@ const MainLayout = () => {
             label: 'Overview',
         },
         {
-            key: `/dashboard/${guildId}/stats`,
+            key: `/dashboard/${guildId}/analytics`,
             icon: <BarChartOutlined />,
             label: 'Analytics',
         },
