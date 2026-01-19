@@ -77,11 +77,12 @@ router.put('/guilds/:guildId/settings', async (req, res) => {
 
         // Audit Log
         if (req.user) {
-            logAction(req.params.guildId, 'UPDATE_SETTINGS', req.user, updateData);
+            await logAction(req.params.guildId, 'UPDATE_SETTINGS', req.user, updateData);
         }
 
         res.json(settings);
     } catch (err) {
+        console.error('Settings Update Error:', err);
         res.status(500).json({ error: err.message });
     }
 });

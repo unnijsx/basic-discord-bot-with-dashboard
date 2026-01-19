@@ -22,7 +22,9 @@ import DataPrivacy from './pages/DataPrivacy';
 import SuperAdmin from './pages/SuperAdmin';
 import { AuthProvider } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
-import ProtectedRoute from './components/ProtectedRoute';
+import Settings from './pages/Settings';
+
+
 
 const App = () => {
   return (
@@ -60,7 +62,7 @@ const App = () => {
                 <Route path="management" element={<ServerManagement />} />
                 <Route path="forms" element={<FormBuilder />} />
                 <Route path="scheduled-messages" element={<ScheduledMessages />} />
-                <Route path="settings" element={<Moderation />} />
+                <Route path="settings" element={<Settings />} />
               </Route>
             </Routes>
           </Router>
