@@ -10,6 +10,14 @@ const TicketSchema = new mongoose.Schema({
     closedBy: { type: String },
     closedAt: { type: Date },
     transcript: { type: String }, // URL or stored path (optional)
+    messages: [{ // For Web Dashboard Transcript
+        authorId: String,
+        authorName: String,
+        authorAvatar: String,
+        content: String,
+        attachments: [String],
+        timestamp: Date
+    }],
     createdAt: { type: Date, default: Date.now }
 });
 

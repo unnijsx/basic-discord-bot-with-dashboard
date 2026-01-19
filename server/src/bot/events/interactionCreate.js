@@ -82,6 +82,9 @@ module.exports = {
             if (interaction.customId === 'ticket_claim') {
                 await handleTicketClaim(interaction);
             }
+            if (interaction.customId === 'ticket_close_confirm') {
+                await handleTicketClose(interaction);
+            }
             return;
         }
 
@@ -292,6 +295,69 @@ async function handleTicketClaim(interaction) {
 
     } catch (err) {
         console.error('Ticket Claim Error:', err);
+    }
+}
+
+async function handleTicketClose(interaction) {
+    try {
+        await interaction.deferReply();
+        const { channel, guild, user } = interaction;
+
+        const ticketData = await Ticket.findOne({ channelId: channel.id });
+        if (!ticketData) return interaction.editReply('❌ Ticket not found in DB.');
+
+        // 1. Fetch Messages
+        let messages = await channel.messages.fetch({ limit: 100 });
+
+        // 2. Generate Transcript
+        const buffer = await generateTranscript(channel, messages);
+        const attachment = new AttachmentBuilder(buffer, { name: `transcript-${channel.name}.html` });
+
+        // 3. DM User
+        try {
+            const ticketOwner = await guild.members.fetch(ticketData.userId);
+            if (ticketOwner) {
+                await ticketOwner.send({
+                    content: `Your ticket **${channel.name}** in **${guild.name}** has been closed.`,
+                    files: [attachment]
+                });
+            }
+        } catch (e) {
+            console.log('Could not DM user transcript');
+        }
+
+        // 4. Update Database
+        ticketData.status = 'closed';
+        ticketData.closedAt = new Date();
+        ticketData.closedBy = user.id;
+
+        // Save Message History for Web Dashboard
+        ticketData.messages = messages.reverse().map(m => ({
+            authorId: m.author.id,
+            authorName: m.author.username,
+            authorAvatar: m.author.displayAvatarURL(),
+            content: m.content,
+            attachments: m.attachments.map(a => a.url),
+            timestamp: m.createdTimestamp
+        }));
+
+        await ticketData.save();
+
+        // 5. Log Action
+        await logAction(guild.id, 'TICKET_CLOSE', user, {
+            channelName: channel.name,
+            ticketId: ticketData._id
+        });
+
+        // 6. Respond and Delete
+        await interaction.editReply({ content: '✅ Ticket closed. Deleting channel in 5 seconds...', files: [attachment] });
+
+        setTimeout(() => {
+            channel.delete().catch(() => { });
+        }, 5000);
+
+    } catch (err) {
+        console.error('Ticket Close Error:', err);
     }
 }
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Form, Input, Button, Select, Divider, App, Row, Col, Typography, Space, List, Tag, Modal, Popconfirm } from 'antd';
-import { SendOutlined, SaveOutlined, RobotOutlined, DeploymentUnitOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { SendOutlined, SaveOutlined, RobotOutlined, DeploymentUnitOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ArrowLeftOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import api from '../../api/axios';
 import { useParams } from 'react-router-dom';
 
@@ -116,9 +116,14 @@ const TicketSystem = () => {
                         <Title level={2} style={{ color: '#fff', margin: 0 }}>Ticket System</Title>
                         <Text type="secondary">Manage multiple support ticket panels for your server.</Text>
                     </div>
-                    <Button type="primary" icon={<PlusOutlined />} onClick={() => handleEdit(null)} size="large">
-                        Create New Panel
-                    </Button>
+                    <Space>
+                        <Button icon={<ClockCircleOutlined />} onClick={() => window.location.href = `/dashboard/${guildId}/tickets/history`}>
+                            History
+                        </Button>
+                        <Button type="primary" icon={<PlusOutlined />} onClick={() => handleEdit(null)} size="large">
+                            Create New Panel
+                        </Button>
+                    </Space>
                 </div>
 
                 <List

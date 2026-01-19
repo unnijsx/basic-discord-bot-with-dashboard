@@ -5,6 +5,7 @@ const Level = require('../models/Level');
 const { logAction } = require('../utils/auditLogger');
 const AuditLog = require('../models/AuditLog');
 const TicketPanel = require('../models/TicketPanel');
+const Ticket = require('../models/Ticket');
 
 // Get Guild Basic Info
 router.get('/guilds/:guildId', async (req, res) => {
@@ -467,6 +468,39 @@ router.post('/guilds/:guildId/tickets/send', async (req, res) => {
         res.json({ success: true });
     } catch (err) {
         console.error(err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Get Ticket History (Closed Tickets)
+router.get('/guilds/:guildId/tickets/history', async (req, res) => {
+    try {
+        const history = await Ticket.find({ guildId: req.params.guildId, status: 'closed' })
+            .sort({ closedAt: -1 })
+            .select('channelId userId closedBy closedAt status claimedBy') // Exclude messages for list view
+            .limit(50);
+
+        // Enrich Data
+        const enriched = await Promise.all(history.map(async (t) => {
+            // Need usernames? We can try to fetch, or just rely on what we have.
+            // Ideally we should have stored 'username' in Ticket model upon creation/closure to avoid fetching.
+            // For now, let's just return IDs, frontend can try to resolve or just show ID.
+            return t;
+        }));
+
+        res.json(enriched);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Get Single Ticket Details (Transcript)
+router.get('/guilds/:guildId/tickets/:ticketId', async (req, res) => {
+    try {
+        const ticket = await Ticket.findOne({ _id: req.params.ticketId, guildId: req.params.guildId });
+        if (!ticket) return res.status(404).json({ message: 'Ticket not found' });
+        res.json(ticket);
+    } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });

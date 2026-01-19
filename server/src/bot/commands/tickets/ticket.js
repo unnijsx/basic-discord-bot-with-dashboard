@@ -117,6 +117,17 @@ module.exports = {
             ticketData.status = 'closed';
             ticketData.closedAt = new Date();
             ticketData.closedBy = user.id;
+
+            // Save Message History for Web Dashboard
+            ticketData.messages = messages.reverse().map(m => ({
+                authorId: m.author.id,
+                authorName: m.author.username,
+                authorAvatar: m.author.displayAvatarURL(),
+                content: m.content,
+                attachments: m.attachments.map(a => a.url),
+                timestamp: m.createdTimestamp
+            }));
+
             await ticketData.save();
 
             // 5. Log Action

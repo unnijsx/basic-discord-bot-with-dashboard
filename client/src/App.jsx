@@ -63,6 +63,8 @@ const App = () => {
                 <Route path="leveling" element={<Leveling />} />
                 <Route path="music" element={<Music />} />
                 <Route path="tickets" element={<TicketSystem />} />
+                <Route path="tickets/history" element={<TicketHistory />} />
+                <Route path="moderation/*" element={<Moderation />} />
                 <Route path="logging" element={<Logging />} />
                 <Route path="messages" element={<EmbedBuilder />} />
                 <Route path="management" element={<ServerManagement />} />
