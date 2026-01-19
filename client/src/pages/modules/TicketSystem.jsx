@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Form, Input, Button, Select, Divider, App, Row, Col, Typography, Space } from 'antd';
-import { SendOutlined, SaveOutlined, RobotOutlined, DeploymentUnitOutlined } from '@ant-design/icons';
+import { Card, Form, Input, Button, Select, Divider, App, Row, Col, Typography, Space, List, Tag, Modal, Popconfirm } from 'antd';
+import { SendOutlined, SaveOutlined, RobotOutlined, DeploymentUnitOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import api from '../../api/axios';
 import { useParams } from 'react-router-dom';
 
@@ -12,6 +12,9 @@ const TicketSystem = () => {
     const { message } = App.useApp();
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
+    const [panels, setPanels] = useState([]);
+    const [view, setView] = useState('list'); // 'list' or 'edit'
+    const [editingPanel, setEditingPanel] = useState(null); // null = new
     const [channels, setChannels] = useState([]);
     const [roles, setRoles] = useState([]);
     const [deployLoading, setDeployLoading] = useState(false);
@@ -19,30 +22,69 @@ const TicketSystem = () => {
 
     useEffect(() => {
         fetchData();
+        fetchResources();
     }, [guildId]);
 
     const fetchData = async () => {
         try {
-            const [panelRes, channelsRes, rolesRes] = await Promise.all([
-                api.get(`/guilds/${guildId}/tickets/panel`),
+            const res = await api.get(`/guilds/${guildId}/tickets/panels`);
+            setPanels(res.data);
+        } catch (error) {
+            console.error(error);
+            message.error('Failed to fetch ticket panels');
+        }
+    };
+
+    const fetchResources = async () => {
+        try {
+            const [channelsRes, rolesRes] = await Promise.all([
                 api.get(`/guilds/${guildId}/channels`),
                 api.get(`/guilds/${guildId}/roles`)
             ]);
-
-            form.setFieldsValue(panelRes.data);
             setChannels(channelsRes.data);
             setRoles(rolesRes.data);
         } catch (error) {
-            console.error(error);
-            message.error('Failed to fetch ticket configuration');
+            console.error('Failed to fetch resources');
+        }
+    };
+
+    const handleEdit = (panel) => {
+        setEditingPanel(panel);
+        setView('edit');
+        if (panel) {
+            form.setFieldsValue(panel);
+        } else {
+            form.resetFields();
+            form.setFieldsValue({
+                title: 'Open a Ticket',
+                description: 'Click the button below to react out to our support team.',
+                buttonText: 'Create Ticket',
+                buttonEmoji: '🎫',
+                namingScheme: 'ticket-{username}'
+            });
+        }
+    };
+
+    const handleDelete = async (uniqueId) => {
+        try {
+            await api.delete(`/guilds/${guildId}/tickets/panel/${uniqueId}`);
+            message.success('Panel deleted');
+            fetchData();
+        } catch (error) {
+            message.error('Failed to delete panel');
         }
     };
 
     const handleSave = async (values) => {
         setLoading(true);
         try {
-            await api.post(`/guilds/${guildId}/tickets/panel`, values);
-            message.success('Ticket panel configuration saved');
+            const payload = { ...values };
+            if (editingPanel) payload.uniqueId = editingPanel.uniqueId;
+
+            await api.post(`/guilds/${guildId}/tickets/panel`, payload);
+            message.success('Ticket panel saved');
+            setView('list');
+            fetchData();
         } catch (error) {
             message.error('Failed to save configuration');
         } finally {
@@ -50,11 +92,14 @@ const TicketSystem = () => {
         }
     };
 
-    const handleDeploy = async () => {
+    const handleDeploy = async (panelId) => {
         if (!deployChannel) return message.warning('Please select a channel to deploy to');
         setDeployLoading(true);
         try {
-            await api.post(`/guilds/${guildId}/tickets/send`, { channelId: deployChannel });
+            await api.post(`/guilds/${guildId}/tickets/send`, {
+                channelId: deployChannel,
+                uniqueId: panelId
+            });
             message.success('Ticket panel deployed successfully!');
         } catch (error) {
             message.error('Failed to deploy ticket panel');
@@ -63,20 +108,82 @@ const TicketSystem = () => {
         }
     };
 
+    if (view === 'list') {
+        return (
+            <div style={{ padding: 24, maxWidth: 1200, margin: '0 auto' }}>
+                <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                        <Title level={2} style={{ color: '#fff', margin: 0 }}>Ticket System</Title>
+                        <Text type="secondary">Manage multiple support ticket panels for your server.</Text>
+                    </div>
+                    <Button type="primary" icon={<PlusOutlined />} onClick={() => handleEdit(null)} size="large">
+                        Create New Panel
+                    </Button>
+                </div>
+
+                <List
+                    grid={{ gutter: 16, xs: 1, sm: 1, md: 2, lg: 3, xl: 3, xxl: 3 }}
+                    dataSource={panels}
+                    renderItem={item => (
+                        <List.Item>
+                            <Card
+                                style={{ background: '#2f3136', border: '1px solid #202225' }}
+                                actions={[
+                                    <Popconfirm title="Delete this panel?" onConfirm={() => handleDelete(item.uniqueId)}>
+                                        <DeleteOutlined key="delete" style={{ color: '#f5222d' }} />
+                                    </Popconfirm>,
+                                    <EditOutlined key="edit" onClick={() => handleEdit(item)} />,
+                                    <div style={{ padding: '0 8px' }}>
+                                        <Select
+                                            placeholder="Deploy to..."
+                                            size="small"
+                                            style={{ width: 120 }}
+                                            onChange={setDeployChannel}
+                                            options={channels.map(c => ({ label: '#' + c.name, value: c.id }))}
+                                            dropdownMatchSelectWidth={false}
+                                        />
+                                        <Button
+                                            type="text"
+                                            size="small"
+                                            icon={<SendOutlined />}
+                                            onClick={() => handleDeploy(item.uniqueId)}
+                                            disabled={!deployChannel}
+                                            style={{ color: '#5865F2' }}
+                                        />
+                                    </div>
+                                ]}
+                            >
+                                <Card.Meta
+                                    avatar={<div style={{ fontSize: 24 }}>{item.buttonEmoji}</div>}
+                                    title={<Text style={{ color: '#fff' }}>{item.title}</Text>}
+                                    description={
+                                        <Space direction="vertical" size={2}>
+                                            <Text type="secondary" style={{ fontSize: 12 }}>{item.buttonText}</Text>
+                                            <Tag color="blue">{item.namingScheme}</Tag>
+                                        </Space>
+                                    }
+                                />
+                            </Card>
+                        </List.Item>
+                    )}
+                />
+            </div>
+        );
+    }
+
     return (
         <div style={{ padding: 24, maxWidth: 1200, margin: '0 auto' }}>
-            <div style={{ marginBottom: 24 }}>
-                <Title level={2} style={{ color: '#fff', margin: 0 }}>Ticket System</Title>
-                <Text type="secondary">Configure your support ticket system and deploy panels to your server.</Text>
-            </div>
+            <Button type="link" icon={<ArrowLeftOutlined />} onClick={() => setView('list')} style={{ marginBottom: 16, paddingLeft: 0 }}>
+                Back to Panels
+            </Button>
 
             <Row gutter={[24, 24]}>
                 <Col xs={24} lg={16}>
-                    <Card title={<Space><RobotOutlined /> Panel Configuration</Space>} bordered={false} style={{ background: '#2f3136' }}>
+                    <Card title={<Space><RobotOutlined /> {editingPanel ? 'Edit Panel' : 'New Panel'}</Space>} bordered={false} style={{ background: '#2f3136' }}>
                         <Form form={form} layout="vertical" onFinish={handleSave}>
                             <Row gutter={16}>
                                 <Col span={12}>
-                                    <Form.Item name="title" label="Embed Title" initialValue="Open a Ticket">
+                                    <Form.Item name="title" label="Embed Title" rules={[{ required: true }]}>
                                         <Input placeholder="e.g. Server Support" />
                                     </Form.Item>
                                 </Col>
@@ -117,7 +224,7 @@ const TicketSystem = () => {
                                 </Col>
                                 <Col span={12}>
                                     <Form.Item name="supportRole" label="Support Role (ID)" tooltip="Paste the Role ID of your support team.">
-                                         <Select placeholder="Select Support Role" showSearch optionFilterProp="children">
+                                        <Select placeholder="Select Support Role" showSearch optionFilterProp="children" allowClear>
                                             {roles.map(r => (
                                                 <Option key={r.id} value={r.id} style={{ color: r.color !== '#000000' ? r.color : 'inherit' }}>
                                                     {r.name}
@@ -127,7 +234,7 @@ const TicketSystem = () => {
                                     </Form.Item>
                                 </Col>
                             </Row>
-                            
+
                             <Form.Item>
                                 <Button type="primary" htmlType="submit" icon={<SaveOutlined />} loading={loading} block size="large">
                                     Save Configuration
@@ -138,39 +245,7 @@ const TicketSystem = () => {
                 </Col>
 
                 <Col xs={24} lg={8}>
-                    <Card title={<Space><DeploymentUnitOutlined /> Deploy Panel</Space>} bordered={false} style={{ background: '#2f3136' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                            <Text type="secondary">
-                                Select a channel to send this ticket panel to. Make sure the bot has permission to view and send messages in that channel.
-                            </Text>
-                            
-                            <Select 
-                                placeholder="Select Channel" 
-                                style={{ width: '100%' }}
-                                onChange={setDeployChannel}
-                                value={deployChannel}
-                                showSearch
-                                optionFilterProp="children"
-                            >
-                                {channels.map(c => (
-                                    <Option key={c.id} value={c.id}>#{c.name}</Option>
-                                ))}
-                            </Select>
-
-                            <Button 
-                                type="primary" 
-                                danger 
-                                icon={<SendOutlined />} 
-                                onClick={handleDeploy} 
-                                loading={deployLoading}
-                                disabled={!deployChannel}
-                            >
-                                Deploy Panel
-                            </Button>
-                        </div>
-                    </Card>
-                    
-                    <Card title="Preview" bordered={false} style={{ background: '#2f3136', marginTop: 24 }}>
+                    <Card title="Preview" bordered={false} style={{ background: '#2f3136' }}>
                         <Form shouldUpdate form={form}>
                             {() => {
                                 const values = form.getFieldsValue();

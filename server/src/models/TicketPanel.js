@@ -1,7 +1,9 @@
 const mongoose = require('mongoose');
+const crypto = require('crypto');
 
 const TicketPanelSchema = new mongoose.Schema({
     guildId: { type: String, required: true, index: true },
+    uniqueId: { type: String, default: () => crypto.randomUUID(), unique: true }, // Unique ID for specific panel
     title: { type: String, default: 'Open a Ticket' },
     description: { type: String, default: 'Click the button below to react out to our support team.' },
     buttonText: { type: String, default: 'Create Ticket' },

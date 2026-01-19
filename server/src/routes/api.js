@@ -371,35 +371,52 @@ router.post('/guilds/:guildId/backup', async (req, res) => {
 // TICKET SYSTEM
 // =======================
 
-// Get Ticket Panel Config
-router.get('/guilds/:guildId/tickets/panel', async (req, res) => {
+// Get Ticket Panels (List)
+router.get('/guilds/:guildId/tickets/panels', async (req, res) => {
     try {
-        let panel = await TicketPanel.findOne({ guildId: req.params.guildId });
-        if (!panel) {
-            panel = new TicketPanel({ guildId: req.params.guildId });
+        const panels = await TicketPanel.find({ guildId: req.params.guildId });
+        res.json(panels);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Create/Update Ticket Panel
+router.post('/guilds/:guildId/tickets/panel', async (req, res) => {
+    try {
+        const { uniqueId, ...updateData } = req.body;
+        let panel;
+
+        if (uniqueId) {
+            // Update existing
+            panel = await TicketPanel.findOneAndUpdate(
+                { guildId: req.params.guildId, uniqueId: uniqueId },
+                updateData,
+                { new: true }
+            );
+            if (req.user) await logAction(req.params.guildId, 'UPDATE_TICKET_PANEL', req.user, { title: panel.title });
+        } else {
+            // Create new
+            panel = new TicketPanel({
+                guildId: req.params.guildId,
+                ...updateData
+            });
             await panel.save();
+            if (req.user) await logAction(req.params.guildId, 'CREATE_TICKET_PANEL', req.user, { title: panel.title });
         }
+
         res.json(panel);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// Update Ticket Panel Config
-router.post('/guilds/:guildId/tickets/panel', async (req, res) => {
+// Delete Ticket Panel
+router.delete('/guilds/:guildId/tickets/panel/:uniqueId', async (req, res) => {
     try {
-        const panel = await TicketPanel.findOneAndUpdate(
-            { guildId: req.params.guildId },
-            req.body,
-            { new: true, upsert: true }
-        );
-
-        // Audit Log
-        if (req.user) {
-            logAction(req.params.guildId, 'UPDATE_TICKET_PANEL', req.user, req.body);
-        }
-
-        res.json(panel);
+        await TicketPanel.deleteOne({ guildId: req.params.guildId, uniqueId: req.params.uniqueId });
+        if (req.user) await logAction(req.params.guildId, 'DELETE_TICKET_PANEL', req.user, { panelId: req.params.uniqueId });
+        res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -408,8 +425,15 @@ router.post('/guilds/:guildId/tickets/panel', async (req, res) => {
 // Deploy Ticket Panel to Channel
 router.post('/guilds/:guildId/tickets/send', async (req, res) => {
     try {
-        const { channelId } = req.body;
-        const panel = await TicketPanel.findOne({ guildId: req.params.guildId });
+        const { channelId, uniqueId } = req.body;
+
+        let panel;
+        if (uniqueId) {
+            panel = await TicketPanel.findOne({ guildId: req.params.guildId, uniqueId });
+        } else {
+            // Fallback for old calls or if only one exists (get the latest)
+            panel = await TicketPanel.findOne({ guildId: req.params.guildId }).sort({ createdAt: -1 });
+        }
 
         if (!panel) return res.status(404).json({ message: 'Panel not configured' });
 
@@ -427,7 +451,7 @@ router.post('/guilds/:guildId/tickets/send', async (req, res) => {
         const row = new ActionRowBuilder()
             .addComponents(
                 new ButtonBuilder()
-                    .setCustomId('ticket_create')
+                    .setCustomId(`ticket_create_${panel.uniqueId}`) // Bind to specific panel
                     .setLabel(panel.buttonText)
                     .setEmoji(panel.buttonEmoji || '🎫')
                     .setStyle(ButtonStyle.Primary)
@@ -437,7 +461,7 @@ router.post('/guilds/:guildId/tickets/send', async (req, res) => {
 
         // Audit Log
         if (req.user) {
-            logAction(req.params.guildId, 'DEPLOY_TICKET_PANEL', req.user, { channelName: channel.name });
+            logAction(req.params.guildId, 'DEPLOY_TICKET_PANEL', req.user, { channelName: channel.name, panelTitle: panel.title });
         }
 
         res.json({ success: true });

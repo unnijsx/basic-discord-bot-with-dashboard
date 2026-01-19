@@ -76,7 +76,7 @@ module.exports = {
             }
 
             // Ticket Create Button
-            if (interaction.customId === 'ticket_create') {
+            if (interaction.customId === 'ticket_create' || interaction.customId.startsWith('ticket_create_')) {
                 await handleTicketCreate(interaction);
             }
             return;
@@ -102,12 +102,21 @@ async function handleTicketCreate(interaction) {
     try {
         await interaction.deferReply({ ephemeral: true });
 
-        // 1. Check for existing ticket? (Optional, maybe allow multiple)
-        // For now, let's allow multiple.
+        // 1. Identify Panel ID from Custom ID
+        let panel;
+        const parts = interaction.customId.split('_'); // ticket_create_UNIQUEID
+        if (parts.length === 3) {
+            const uniqueId = parts[2];
+            panel = await TicketPanel.findOne({ guildId: interaction.guildId, uniqueId });
+        } else {
+            // Fallback for old buttons
+            panel = await TicketPanel.findOne({ guildId: interaction.guildId }).sort({ createdAt: -1 });
+        }
+
+        if (!panel) return interaction.editReply('❌ Ticket panel configuration not found.');
 
         // 2. Fetch Config
-        const panel = await TicketPanel.findOne({ guildId: interaction.guildId });
-        if (!panel) return interaction.editReply('❌ Ticket system not configured.');
+        // ... (We already have 'panel')
 
         // 3. Create Channel
         const { guild, user } = interaction;
