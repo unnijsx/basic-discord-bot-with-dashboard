@@ -8,10 +8,40 @@ import { ThunderboltOutlined, SearchOutlined, RobotOutlined, SettingOutlined } f
 
 const { Title, Text } = Typography;
 
+import PremiumNavbar from '../components/Layout/PremiumNavbar';
+
+const { Title, Text } = Typography;
+
 const Container = styled.div`
-    padding: 40px;
-    background: #121212;
+    padding: 0;
+    padding-top: 100px; /* Space for fixed navbar */
+    background: #0a0a0a;
     min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+    position: relative;
+    overflow: hidden;
+`;
+
+const ContentWrapper = styled.div`
+    padding: 20px 50px;
+    max-width: 1600px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+`;
+
+/* Reuse Aurora Logic from Landing Page (optional, or just keep dark theme)
+ * Let's add a subtle gradient instead of full aurora for performance on dashboard
+ */
+const BackgroundGlow = styled.div`
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 50% -20%, rgba(88, 101, 242, 0.15), transparent 50%);
+    z-index: 0;
+    pointer-events: none;
 `;
 
 const GuildCard = styled(Card)`
@@ -104,71 +134,76 @@ const ServerSelector = () => {
 
     return (
         <Container>
-            <div style={{ textAlign: 'center', marginBottom: 40, position: 'relative' }}>
-                <Title level={2} style={{ color: '#fff', marginBottom: 10 }}>Select a Server</Title>
-                <Text style={{ color: '#b9bbbe' }}>Manage your existing servers or invite Rheox to a new one.</Text>
+            <PremiumNavbar showLogout={true} />
+            <BackgroundGlow />
+            <ContentWrapper>
+                <div style={{ textAlign: 'center', marginBottom: 60, position: 'relative' }}>
+                    <Title level={1} style={{ color: '#fff', marginBottom: 12, fontSize: '2.5rem' }}>Select a Server</Title>
+                    <Text style={{ color: '#b9bbbe', fontSize: '1.1rem' }}>Manage your existing servers or invite Rheox to a new one.</Text>
 
-                <div style={{ marginTop: 30 }}>
-                    <SearchBar
-                        placeholder="Search servers..."
-                        prefix={<SearchOutlined style={{ color: '#b9bbbe' }} />}
-                        onChange={e => setSearchTerm(e.target.value)}
-                    />
+                    <div style={{ marginTop: 30 }}>
+                        <SearchBar
+                            placeholder="Search servers..."
+                            prefix={<SearchOutlined style={{ color: '#b9bbbe' }} />}
+                            onChange={e => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+
+                    {user?.isSuperAdmin && (
+                        <Button
+                            type="primary"
+                            danger
+                            icon={<ThunderboltOutlined />}
+                            style={{ position: 'absolute', right: 20, top: 0 }}
+                            onClick={() => navigate('/super-admin')}
+                        >
+                            Admin
+                        </Button>
+                    )}
                 </div>
 
-                {user?.isSuperAdmin && (
-                    <Button
-                        type="primary"
-                        danger
-                        icon={<ThunderboltOutlined />}
-                        style={{ position: 'absolute', right: 20, top: 0 }}
-                        onClick={() => navigate('/super-admin')}
-                    >
-                        Admin
-                    </Button>
-                )}
-            </div>
-
-            {filteredGuilds.length > 0 ? (
-                <Row gutter={[24, 24]}>
-                    {filteredGuilds.map(guild => (
-                        <Col xs={24} sm={12} md={8} lg={6} xl={4} key={guild.id}>
-                            <GuildCard
-                                hoverable
-                                bordered={false}
-                                cover={
-                                    <Badge count={!guild.botInGuild ? "Invite" : 0} offset={[-20, 20]} color="#faa61a">
-                                        <Avatar
-                                            size={80}
-                                            src={guild.icon
-                                                ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`
-                                                : 'https://cdn.discordapp.com/embed/avatars/0.png'}
-                                            style={{ boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}
-                                        />
-                                    </Badge>
-                                }
-                            >
-                                <div className="server-name">{guild.name}</div>
-                                <Button
-                                    type={guild.botInGuild ? "primary" : "default"}
-                                    block
-                                    icon={guild.botInGuild ? <SettingOutlined /> : <RobotOutlined />}
-                                    onClick={() => handleSelect(guild)}
-                                    style={!guild.botInGuild ? {
-                                        borderColor: '#5865F2',
-                                        color: '#5865F2',
-                                        background: 'transparent'
-                                    } : {}}
+                {filteredGuilds.length > 0 ? (
+                    <Row gutter={[24, 24]}>
+                        {filteredGuilds.map(guild => (
+                            <Col xs={24} sm={12} md={8} lg={6} xl={4} key={guild.id}>
+                                <GuildCard
+                                    hoverable
+                                    bordered={false}
+                                    cover={
+                                        <Badge count={!guild.botInGuild ? "Invite" : 0} offset={[-20, 20]} color="#faa61a">
+                                            <Avatar
+                                                size={80}
+                                                src={guild.icon
+                                                    ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`
+                                                    : 'https://cdn.discordapp.com/embed/avatars/0.png'}
+                                                style={{ boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}
+                                            />
+                                        </Badge>
+                                    }
                                 >
-                                    {guild.botInGuild ? 'Manage' : 'Invite Bot'}
-                                </Button>
-                            </GuildCard>
-                        </Col>
-                    ))}
-                </Row>
-            ) : (
-                <Empty description={<span style={{ color: '#b9bbbe' }}>No servers found</span>} style={{ marginTop: 50 }} />
+                                    <div className="server-name">{guild.name}</div>
+                                    <Button
+                                        type={guild.botInGuild ? "primary" : "default"}
+                                        block
+                                        icon={guild.botInGuild ? <SettingOutlined /> : <RobotOutlined />}
+                                        onClick={() => handleSelect(guild)}
+                                        style={!guild.botInGuild ? {
+                                            borderColor: '#5865F2',
+                                            color: '#5865F2',
+                                            background: 'transparent'
+                                        } : {}}
+                                    >
+                                        {guild.botInGuild ? 'Manage' : 'Invite Bot'}
+                                    </Button>
+                                </GuildCard>
+                            </Col>
+                        ))}
+                    </Row>
+                ) : (
+                    <Empty description={<span style={{ color: '#b9bbbe' }}>No servers found</span>} style={{ marginTop: 50 }} />
+                )}
             )}
+            </ContentWrapper>
         </Container>
     );
 };

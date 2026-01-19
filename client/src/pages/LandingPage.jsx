@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import styled, { keyframes, createGlobalStyle } from 'styled-components';
 import { useAuth } from '../context/AuthContext';
 import { useBranding } from '../context/BrandingContext';
+import PremiumNavbar from '../components/Layout/PremiumNavbar';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -180,6 +181,12 @@ const LandingPage = () => {
   const { user } = useAuth();
   const { appName, appLogo } = useBranding();
 
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
+
   const handleCta = () => {
     if (user) {
       navigate('/dashboard');
@@ -211,19 +218,7 @@ const LandingPage = () => {
       <GlobalStyle />
       <AuroraBackground />
 
-      <Navbar>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 15 }}>
-          {appLogo ? <img src={appLogo} alt="Logo" style={{ width: 40, height: 40, borderRadius: '50%' }} /> : <RocketOutlined style={{ fontSize: 30, color: '#5865F2' }} />}
-          <Title level={4} style={{ color: '#fff', margin: 0, fontWeight: 800, letterSpacing: 1 }}>{appName.toUpperCase()}</Title>
-        </div>
-        <Space>
-          <Button type="link" style={{ color: '#ccc' }} onClick={() => navigate('/about')}>About</Button>
-          <Button type="link" style={{ color: '#ccc' }} onClick={() => navigate('/support')}>Support</Button>
-          <Button shape="round" ghost style={{ borderColor: 'rgba(255,255,255,0.3)', color: '#fff' }} onClick={() => navigate('/login')}>
-            {user ? 'Dashboard' : 'Login'}
-          </Button>
-        </Space>
-      </Navbar>
+      <PremiumNavbar />
 
       {/* Decorative Floating Elements */}
       <FloatingCard style={{ top: '20%', left: '10%', animationDelay: '0s' }}>
