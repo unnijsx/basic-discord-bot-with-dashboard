@@ -438,7 +438,11 @@ router.post('/guilds/:guildId/tickets/send', async (req, res) => {
         }
 
         if (!panel) {
-            console.log(`[API] Panel not found for uniqueId: ${uniqueId} or latest fallback`);
+            console.log(`[API] Panel not found for uniqueId: ${uniqueId}`);
+            // Debug: List all known panels for this guild
+            const allPanels = await TicketPanel.find({ guildId: req.params.guildId }, 'title uniqueId');
+            console.log('[API] Available Panels in DB:', JSON.stringify(allPanels, null, 2));
+
             return res.status(404).json({ message: 'Panel not configured' });
         }
 
