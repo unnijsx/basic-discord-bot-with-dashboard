@@ -2,7 +2,7 @@ const router = require('express').Router();
 const passport = require('passport');
 
 // Login with Discord
-router.get('/discord', passport.authenticate('discord'));
+router.get('/discord', passport.authenticate('discord', { scope: ['identify', 'email', 'guilds'] }));
 
 // Redirect Handler
 router.get('/discord/callback', passport.authenticate('discord', {
