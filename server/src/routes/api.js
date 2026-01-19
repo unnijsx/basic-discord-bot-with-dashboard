@@ -218,6 +218,18 @@ router.post('/guilds/:guildId/messages', async (req, res) => {
         }
 
         await channel.send(payload);
+
+        // Audit Log
+        if (req.user) {
+            await logAction(req.params.guildId, 'SEND_MESSAGE', req.user, {
+                channelId,
+                channelName: channel.name,
+                hasContent: !!content,
+                hasEmbed: !!embed,
+                hasComponents: !!req.body.components
+            });
+        }
+
         res.json({ success: true });
     } catch (err) {
         console.error(err);
@@ -263,6 +275,16 @@ router.post('/guilds/:guildId/channels', async (req, res) => {
         const { name, type } = req.body; // type: 0 = text, 2 = voice
         const guild = req.botClient.guilds.cache.get(req.params.guildId);
         const channel = await guild.channels.create({ name, type: type || 0 });
+
+        // Audit Log
+        if (req.user) {
+            await logAction(req.params.guildId, 'create_channel', req.user, {
+                name: channel.name,
+                id: channel.id,
+                type: type || 0
+            });
+        }
+
         res.json({ success: true, channel: { id: channel.id, name: channel.name } });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -273,7 +295,16 @@ router.delete('/guilds/:guildId/channels/:channelId', async (req, res) => {
     try {
         const guild = req.botClient.guilds.cache.get(req.params.guildId);
         const channel = guild.channels.cache.get(req.params.channelId);
-        if (channel) await channel.delete();
+        if (channel) {
+            await channel.delete();
+            // Audit Log
+            if (req.user) {
+                await logAction(req.params.guildId, 'delete_channel', req.user, {
+                    name: channel.name,
+                    id: channel.id
+                });
+            }
+        }
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });

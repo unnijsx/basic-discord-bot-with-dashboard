@@ -31,12 +31,52 @@ const AuditLogs = () => {
         fetchLogs();
     }, [guildId]);
 
+    const renderDetails = (action, details) => {
+        if (!details) return <Text type="secondary">No details</Text>;
+
+        switch (action.toUpperCase()) {
+            case 'UPDATE_SETTINGS':
+                const changes = [];
+                if (details.moderationConfig) changes.push('Moderation');
+                if (details.levelingConfig) changes.push('Leveling');
+                if (details.musicConfig) changes.push('Music');
+                if (details.loggingConfig) changes.push('Logging');
+                if (details.modules) changes.push('Modules Toggled');
+                return <Text>Updated: {changes.join(', ') || 'Settings'}</Text>;
+
+            case 'SEND_MESSAGE':
+                return (
+                    <Text>
+                        Sent {details.hasEmbed ? 'Embed' : 'Message'} to <Text strong>#{details.channelName}</Text>
+                    </Text>
+                );
+            case 'CREATE_CHANNEL':
+                return <Text>Created channel <Text strong>#{details.name}</Text> ({details.type === 2 ? 'Voice' : 'Text'})</Text>;
+            case 'DELETE_CHANNEL':
+                return <Text>Deleted channel <Text strong>#{details.name}</Text></Text>;
+            case 'RESTORE_BACKUP':
+                return <Text>Restored server backup</Text>;
+            default:
+                return (
+                    <Tooltip title={<pre style={{ maxHeight: 200, overflow: 'auto', fontSize: 11 }}>{JSON.stringify(details, null, 2)}</pre>}>
+                        <Text code style={{ cursor: 'pointer' }}>View Raw Data</Text>
+                    </Tooltip>
+                );
+        }
+    };
+
     const columns = [
         {
             title: 'Action',
             dataIndex: 'action',
             key: 'action',
-            render: (text) => <Tag color="blue">{text}</Tag>
+            render: (text) => {
+                let color = 'blue';
+                if (text.includes('DELETE')) color = 'red';
+                if (text.includes('CREATE')) color = 'green';
+                if (text.includes('UPDATE')) color = 'orange';
+                return <Tag color={color}>{text.toUpperCase().replace(/_/g, ' ')}</Tag>;
+            }
         },
         {
             title: 'Executor',
@@ -52,13 +92,9 @@ const AuditLogs = () => {
         },
         {
             title: 'Details',
-            dataIndex: 'details',
+            dataIndex: 'changes', // Note: Backend saves as 'changes', logic used 'details' in switch
             key: 'details',
-            render: (details) => (
-                <Tooltip title={<pre style={{ maxHeight: 200, overflow: 'auto' }}>{JSON.stringify(details, null, 2)}</pre>}>
-                    <Text code style={{ cursor: 'pointer' }}>View JSON</Text>
-                </Tooltip>
-            )
+            render: (changes, record) => renderDetails(record.action, changes)
         },
         {
             title: 'Time',
