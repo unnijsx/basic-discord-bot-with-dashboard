@@ -19,7 +19,13 @@ const { Search } = Input;
 const Music = () => {
     const { guildId } = useParams();
     const socket = useSocket();
-    const [status, setStatus] = useState(null);
+    const [status, setStatus] = useState({
+        connected: false,
+        isPlaying: false,
+        currentTrack: null,
+        queue: [],
+        volume: 100
+    });
     const [loading, setLoading] = useState(true);
     const [searchResults, setSearchResults] = useState([]);
     const [searching, setSearching] = useState(false);
@@ -31,11 +37,11 @@ const Music = () => {
         try {
             const { data } = await api.get(`/music/${guildId}/status`);
             if (data) {
-                setStatus(data);
+                setStatus(prev => ({ ...prev, ...data }));
                 if (!dragging) setPosition(data.currentTrack?.position || 0);
             }
         } catch (error) {
-            console.error(error);
+            console.error('Error fetching status:', error);
         } finally {
             setLoading(false);
         }
@@ -48,14 +54,16 @@ const Music = () => {
             socket.emit('joinGuild', guildId);
 
             socket.on('playerUpdate', (data) => {
-                // Determine if we should refresh full status or just patch
-                if (data && data.isPlaying !== undefined) {
-                    setStatus(prev => (prev ? { ...prev, isPlaying: data.isPlaying } : prev));
+                if (data) {
+                    if (data.isPlaying !== undefined) {
+                        setStatus(prev => ({ ...prev, isPlaying: data.isPlaying }));
+                    }
+                    if (data.position !== undefined && !dragging) {
+                        setPosition(data.position);
+                    }
+                    // Force refresh to get track info if changed
+                    fetchStatus();
                 }
-                if (data && data.position !== undefined && !dragging) {
-                    setPosition(data.position);
-                }
-                fetchStatus(); // Sync full state occasionally
             });
 
             socket.on('queueUpdate', () => {
