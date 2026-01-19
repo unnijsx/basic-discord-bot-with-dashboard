@@ -148,7 +148,7 @@ const Music = () => {
                                 <Title level={3} style={{ margin: 0 }}>{status.currentTrack.title}</Title>
                                 <Text type="secondary" style={{ fontSize: '16px' }}>{status.currentTrack.author}</Text>
                                 <div style={{ marginTop: 15 }}>
-                                    <Tag color="blue">{status.currentTrack.duration}</Tag>
+                                    <Tag color="blue">{status.currentTrack.durationString}</Tag>
                                 </div>
                             </>
                         ) : (
@@ -250,7 +250,7 @@ const Music = () => {
                                     title={<a href={item.url} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit' }}>{item.title}</a>}
                                     description={
                                         <span>
-                                            <Tag>{item.duration}</Tag> {item.author}
+                                            <Tag>{item.durationString}</Tag> {item.author}
                                         </span>
                                     }
                                 />

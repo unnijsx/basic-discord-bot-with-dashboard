@@ -100,8 +100,13 @@ module.exports = {
                         const wasPaused = player.paused;
                         await player.playTrack({ track: { encoded: nextTrack.encoded } });
                         if (wasPaused) await player.setPaused(true);
+
+                        client.io?.to(interaction.guild.id).emit('playerUpdate', { isPlaying: !wasPaused });
+                        client.io?.to(interaction.guild.id).emit('queueUpdate');
                     } else {
                         guildQueue.current = null;
+                        client.io?.to(interaction.guild.id).emit('playerUpdate', { isPlaying: false, currentTrack: null });
+                        client.io?.to(interaction.guild.id).emit('queueUpdate');
                     }
                 });
             }
@@ -117,11 +122,15 @@ module.exports = {
                     .setTitle('📜 Added to Queue')
                     .setDescription(`[${metadata.title}](${metadata.uri})`)
                     .setFooter({ text: `Position: ${guildQueue.tracks.length}` });
+
+                client.io?.to(interaction.guild.id).emit('queueUpdate');
                 return interaction.editReply({ content: null, embeds: [queueEmbed] });
             } else {
                 // Play Immediately
                 guildQueue.current = trackItem;
                 await player.playTrack({ track: { encoded: track } });
+                client.io?.to(interaction.guild.id).emit('playerUpdate', { isPlaying: true });
+                client.io?.to(interaction.guild.id).emit('queueUpdate');
             }
 
             // --- Buttons & Embed ---

@@ -102,6 +102,7 @@ app.use((req, res, next) => {
     req.botClient = client;
     req.shoukaku = shoukaku;
     req.io = io; // Keep IO for live logs
+    client.io = io; // Attach to client for bot commands
     console.log(`[HTTP] ${req.method} ${req.url}`);
     next();
 });
