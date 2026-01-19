@@ -5,8 +5,8 @@ const BrandingContext = createContext();
 
 export const BrandingProvider = ({ children }) => {
     const [branding, setBranding] = useState({
-        appName: 'CloneBot Platform',
-        appLogo: '',
+        appName: 'Rheox',
+        appLogo: '/rheox_logo.png',
         themeColor: '#5865F2'
     });
     const [loading, setLoading] = useState(true);
@@ -15,7 +15,11 @@ export const BrandingProvider = ({ children }) => {
         const fetchBranding = async () => {
             try {
                 const { data } = await api.get('/config/branding');
-                setBranding(data);
+                // Merge fetched data with initial branding, prioritizing fetched data
+                setBranding(prevBranding => ({
+                    ...prevBranding,
+                    ...data
+                }));
 
                 // Update CSS variables for global usage if needed
                 document.documentElement.style.setProperty('--primary-color', data.themeColor);

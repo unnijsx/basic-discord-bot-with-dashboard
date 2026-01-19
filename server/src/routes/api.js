@@ -60,7 +60,11 @@ router.put('/guilds/:guildId/settings', async (req, res) => {
 
         const updateData = {};
         if (modules) updateData.modules = modules;
-        if (moderationConfig) updateData.moderationConfig = moderationConfig;
+        if (moderationConfig) {
+            // Deep merge or simple replace? Simple replace of sub-objects is safer for now if frontend sends full object.
+            // But to be safe, we assign specific fields if provided.
+            updateData.moderationConfig = { ...moderationConfig };
+        }
         if (levelingConfig) updateData.levelingConfig = levelingConfig;
         if (loggingConfig) updateData.loggingConfig = loggingConfig;
         if (req.body.welcomeConfig) updateData.welcomeConfig = req.body.welcomeConfig;

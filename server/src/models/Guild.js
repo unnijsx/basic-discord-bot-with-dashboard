@@ -15,7 +15,23 @@ const GuildSchema = new mongoose.Schema({
     // Module specific settings
     moderationConfig: {
         autoMod: { type: Boolean, default: false },
-        logChannelId: { type: String }
+        logChannelId: { type: String },
+        muteRoleId: { type: String },
+        bannedWords: { type: [String], default: [] },
+        whitelistedRoles: { type: [String], default: [] },
+        whitelistedChannels: { type: [String], default: [] },
+        autoModFilters: {
+            caps: { type: Boolean, default: false },
+            links: { type: Boolean, default: false },
+            spam: { type: Boolean, default: false },
+            badWords: { type: Boolean, default: false }
+        },
+        actions: {
+            badWords: { type: String, default: 'delete' }, // delete, warn, mute
+            caps: { type: String, default: 'delete' },
+            links: { type: String, default: 'delete' },
+            spam: { type: String, default: 'timeout' }
+        }
     },
     levelingConfig: {
         levelUpMessage: { type: String, default: 'Congratulations {user}, you reached level {level}!' },
