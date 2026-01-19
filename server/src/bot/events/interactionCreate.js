@@ -74,6 +74,11 @@ module.exports = {
                 const formId = interaction.customId.split('_')[2];
                 await handleFormOpen(interaction, formId);
             }
+
+            // Ticket Create Button
+            if (interaction.customId === 'ticket_create') {
+                await handleTicketCreate(interaction);
+            }
             return;
         }
 
@@ -87,8 +92,95 @@ module.exports = {
     },
 };
 
-const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, EmbedBuilder } = require('discord.js');
+const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, EmbedBuilder, ChannelType, PermissionFlagsBits, ButtonBuilder, ButtonStyle } = require('discord.js');
 const Form = require('../../models/Form');
+const TicketPanel = require('../../models/TicketPanel');
+const Ticket = require('../../models/Ticket');
+const { logAction } = require('../../utils/auditLogger');
+
+async function handleTicketCreate(interaction) {
+    try {
+        await interaction.deferReply({ ephemeral: true });
+
+        // 1. Check for existing ticket? (Optional, maybe allow multiple)
+        // For now, let's allow multiple.
+
+        // 2. Fetch Config
+        const panel = await TicketPanel.findOne({ guildId: interaction.guildId });
+        if (!panel) return interaction.editReply('❌ Ticket system not configured.');
+
+        // 3. Create Channel
+        const { guild, user } = interaction;
+        const channelName = panel.namingScheme
+            .replace('{username}', user.username)
+            .replace('{id}', user.id.substring(user.id.length - 4));
+
+        const permissionOverwrites = [
+            {
+                id: guild.id,
+                deny: [PermissionFlagsBits.ViewChannel]
+            },
+            {
+                id: user.id,
+                allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages]
+            },
+            {
+                id: interaction.client.user.id,
+                allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ManageChannels]
+            }
+        ];
+
+        if (panel.supportRole) {
+            permissionOverwrites.push({
+                id: panel.supportRole,
+                allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages]
+            });
+        }
+
+        const ticketChannel = await guild.channels.create({
+            name: channelName,
+            type: ChannelType.GuildText,
+            parent: panel.ticketCategory || null,
+            permissionOverwrites
+        });
+
+        // 4. Save to DB
+        const newTicket = new Ticket({
+            guildId: guild.id,
+            channelId: ticketChannel.id,
+            userId: user.id,
+            status: 'open'
+        });
+        await newTicket.save();
+
+        // 5. Send Welcome Message
+        const embed = new EmbedBuilder()
+            .setTitle(`Ticket: ${channelName}`)
+            .setDescription(`Hello ${user}, support will be with you shortly.\n\nTo close this ticket, use the button below or \`/ticket close\`.`)
+            .setColor('#5865F2');
+
+        const row = new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setLabel('Close Ticket')
+                    .setCustomId('ticket_close_confirm') // We can handle this later or just rely on command
+                    .setStyle(ButtonStyle.Danger)
+                    .setEmoji('🔒')
+            );
+
+        await ticketChannel.send({ content: `${user} <@&${panel.supportRole || ''}>`, embeds: [embed] });
+        //, components: [row] // Add button if we handle it
+
+        // Log
+        await logAction(guild.id, 'TICKET_CREATE', user, { channelName, ticketId: newTicket._id });
+
+        await interaction.editReply(`✅ Ticket created: ${ticketChannel}`);
+
+    } catch (err) {
+        console.error('Ticket Create Error:', err);
+        if (interaction.deferred) await interaction.editReply('❌ Failed to create ticket. Check bot permissions.');
+    }
+}
 
 async function handleFormOpen(interaction, formId) {
     try {
