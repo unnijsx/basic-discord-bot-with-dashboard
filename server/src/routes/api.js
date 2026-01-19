@@ -437,10 +437,20 @@ router.post('/guilds/:guildId/tickets/send', async (req, res) => {
             panel = await TicketPanel.findOne({ guildId: req.params.guildId }).sort({ createdAt: -1 });
         }
 
-        if (!panel) return res.status(404).json({ message: 'Panel not configured' });
+        if (!panel) {
+            console.log(`[API] Panel not found for uniqueId: ${uniqueId} or latest fallback`);
+            return res.status(404).json({ message: 'Panel not configured' });
+        }
 
         const guild = req.botClient.guilds.cache.get(req.params.guildId);
-        const channel = guild.channels.cache.get(channelId);
+        // Force fetch channel if not in cache
+        let channel = guild ? guild.channels.cache.get(channelId) : null;
+        if (guild && !channel) {
+            try { channel = await guild.channels.fetch(channelId); } catch (e) { }
+        }
+
+        if (!guild) console.log(`[API] Guild not found: ${req.params.guildId}`);
+        if (!channel) console.log(`[API] Channel not found: ${channelId}`);
 
         if (!guild || !channel) return res.status(404).json({ message: 'Guild or Channel not found' });
 
