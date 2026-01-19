@@ -426,6 +426,7 @@ router.delete('/guilds/:guildId/tickets/panel/:uniqueId', async (req, res) => {
 // Deploy Ticket Panel to Channel
 router.post('/guilds/:guildId/tickets/send', async (req, res) => {
     try {
+        console.log('[API] /tickets/send hit');
         const { channelId, uniqueId } = req.body;
 
         let panel;
