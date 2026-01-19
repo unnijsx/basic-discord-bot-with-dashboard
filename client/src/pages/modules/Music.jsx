@@ -30,8 +30,10 @@ const Music = () => {
     const fetchStatus = async () => {
         try {
             const { data } = await api.get(`/music/${guildId}/status`);
-            setStatus(data);
-            if (!dragging) setPosition(data.currentTrack?.position || 0);
+            if (data) {
+                setStatus(data);
+                if (!dragging) setPosition(data.currentTrack?.position || 0);
+            }
         } catch (error) {
             console.error(error);
         } finally {
@@ -47,10 +49,10 @@ const Music = () => {
 
             socket.on('playerUpdate', (data) => {
                 // Determine if we should refresh full status or just patch
-                if (data.isPlaying !== undefined) {
-                    setStatus(prev => ({ ...prev, isPlaying: data.isPlaying }));
+                if (data && data.isPlaying !== undefined) {
+                    setStatus(prev => (prev ? { ...prev, isPlaying: data.isPlaying } : prev));
                 }
-                if (data.position !== undefined && !dragging) {
+                if (data && data.position !== undefined && !dragging) {
                     setPosition(data.position);
                 }
                 fetchStatus(); // Sync full state occasionally
