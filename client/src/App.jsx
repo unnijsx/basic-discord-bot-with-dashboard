@@ -23,6 +23,7 @@ import SuperAdmin from './pages/SuperAdmin';
 import { AuthProvider } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import Settings from './pages/Settings';
+import ProtectedRoute from './components/ProtectedRoute';
 
 
 
