@@ -1,88 +1,179 @@
-import React from 'react';
-import { Button, Typography, Space, Row, Col, Card } from 'antd';
-import { RocketOutlined, BarChartOutlined, SafetyCertificateOutlined, CustomerServiceOutlined } from '@ant-design/icons';
+import React, { useEffect, useRef } from 'react';
+import { Button, Typography, Space, Row, Col, Card, Avatar } from 'antd';
+import { RocketOutlined, BarChartOutlined, SafetyCertificateOutlined, CustomerServiceOutlined, DiscordOutlined, RightOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import styled, { keyframes } from 'styled-components';
+import styled, { keyframes, createGlobalStyle } from 'styled-components';
 import { useAuth } from '../context/AuthContext';
+import { useBranding } from '../context/BrandingContext';
 
 const { Title, Text, Paragraph } = Typography;
 
+// --- Animations ---
+const float = keyframes`
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+  100% { transform: translateY(0px); }
+`;
+
+const aurora = keyframes`
+  0% { background-position: 50% 50%, 50% 50%; }
+  100% { background-position: 350% 50%, 350% 50%; }
+`;
+
 const fadeIn = keyframes`
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(30px); }
   to { opacity: 1; transform: translateY(0); }
 `;
 
-const Container = styled.div`
+// --- Styled Components ---
+const GlobalStyle = createGlobalStyle`
+  body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    background-color: #000;
+  }
+`;
+
+const PageWrapper = styled.div`
   min-height: 100vh;
-  background: linear-gradient(135deg, #121212 0%, #1a1a1a 100%);
+  background-color: #0a0a0a;
   color: #fff;
-  overflow-x: hidden;
+  font-family: 'Inter', sans-serif;
+  overflow: hidden;
+  position: relative;
 `;
 
-const HeroSection = styled.div`
-  min-height: 90vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  background: radial-gradient(circle at 50% 50%, #2a2a2a 0%, #121212 70%);
-  padding: 0 20px;
-  animation: ${fadeIn} 1s ease-out;
-`;
-
-const GradientText = styled.span`
-  background: linear-gradient(45deg, #5865F2, #00b0f4);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  font-weight: bold;
-`;
-
-const FeatureCard = styled(Card)`
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  transition: transform 0.3s ease, border-color 0.3s ease;
-  height: 100%;
-
-  &:hover {
-    transform: translateY(-10px);
-    border-color: #5865F2;
-  }
-
-  .ant-card-meta-title {
-    color: #fff !important;
-    font-size: 1.2rem;
-  }
-  .ant-card-meta-description {
-    color: #aaa !important;
-  }
+const AuroraBackground = styled.div`
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at 50% 50%, rgba(88, 101, 242, 0.15), transparent 50%),
+              radial-gradient(circle at 80% 20%, rgba(235, 69, 158, 0.1), transparent 40%);
+  animation: ${aurora} 60s linear infinite;
+  z-index: 0;
+  pointer-events: none;
 `;
 
 const Navbar = styled.nav`
-  position: absolute;
+  position: fixed;
   top: 0;
   width: 100%;
   padding: 20px 50px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  z-index: 10;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 
   @media (max-width: 768px) {
-    padding: 20px;
+    padding: 15px 20px;
   }
 `;
 
-const FeaturesSection = styled.div`
+const HeroSection = styled.section`
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+  padding: 0 20px;
+  text-align: center;
+`;
+
+const GradientText = styled.span`
+  background: linear-gradient(135deg, #5865F2 0%, #99aab5 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 800;
+`;
+
+const FloatingCard = styled.div`
+  position: absolute;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  border-radius: 20px;
+  animation: ${float} 6s ease-in-out infinite;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  z-index: -1;
+  
+  @media (max-width: 768px) {
+    display: none;
+  }
+`;
+
+const FeatureGrid = styled.div`
   padding: 100px 50px;
-  background: #121212;
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+`;
+
+const ModernCard = styled(Card)`
+  background: rgba(255, 255, 255, 0.02) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 24px !important;
+  transition: all 0.4s ease;
+  height: 100%;
+  
+  &:hover {
+    transform: translateY(-10px);
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: #5865F2 !important;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    
+    .anticon {
+      transform: scale(1.1) rotate(5deg);
+    }
+  }
+
+  .ant-card-meta-title {
+    color: #fff !important;
+    font-size: 1.5rem !important;
+    font-weight: 700;
+    margin-bottom: 12px !important;
+  }
+  
+  .ant-card-meta-description {
+    color: #b9bbbe !important;
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+`;
+
+const CtaButton = styled(Button)`
+  height: 60px;
+  padding: 0 40px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  border-radius: 30px;
+  border: none;
+  background: linear-gradient(135deg, #5865F2, #4752c4);
+  box-shadow: 0 4px 15px rgba(88, 101, 242, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(88, 101, 242, 0.6);
+    background: linear-gradient(135deg, #4752c4, #5865F2);
+  }
 `;
 
 const LandingPage = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
+    const { appName, appLogo } = useBranding();
 
     const handleCta = () => {
         if (user) {
@@ -94,84 +185,131 @@ const LandingPage = () => {
 
     const features = [
         {
-            icon: <SafetyCertificateOutlined style={{ fontSize: '32px', color: '#5865F2' }} />,
-            title: 'Advanced Moderation',
-            desc: 'Keep your server safe with auto-moderation, logs, and powerful tools.'
+            icon: <SafetyCertificateOutlined style={{ fontSize: '48px', color: '#5865F2' }} />,
+            title: 'Unbreakable Security',
+            desc: 'Advanced auto-moderation, anti-spam filters, and raid protection keep your community safe 24/7.'
         },
         {
-            icon: <CustomerServiceOutlined style={{ fontSize: '32px', color: '#eb459e' }} />,
-            title: 'High-Quality Music',
-            desc: 'Stream your favorite tunes with a lag-free, high-quality music player.'
+            icon: <CustomerServiceOutlined style={{ fontSize: '48px', color: '#eb459e' }} />,
+            title: 'High-Fidelity Music',
+            desc: 'Experience lag-free, crystal clear music playback with support for Spotify, SoundCloud, and more.'
         },
         {
-            icon: <BarChartOutlined style={{ fontSize: '32px', color: '#ffad00' }} />,
-            title: 'Deep Analytics',
-            desc: 'Understand your community with detailed insights and growth tracking.'
-        },
-        {
-            icon: <RocketOutlined style={{ fontSize: '32px', color: '#00b0f4' }} />,
-            title: 'Role Management',
-            desc: 'Automate roles with reaction roles (coming soon) and leveling systems.'
+            icon: <BarChartOutlined style={{ fontSize: '48px', color: '#faa61a' }} />,
+            title: 'Deep Insights',
+            desc: 'Track member growth, engagement, and retention with our beautiful, real-time analytics dashboards.'
         }
     ];
 
     return (
-        <Container>
+        <PageWrapper>
+            <GlobalStyle />
+            <AuroraBackground />
+
             <Navbar>
-                <Title level={3} style={{ color: '#fff', margin: 0 }}>
-                    <RocketOutlined /> Nova<GradientText>Bot</GradientText>
-                </Title>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 15 }}>
+                    {appLogo ? <img src={appLogo} alt="Logo" style={{ width: 40, height: 40, borderRadius: '50%' }} /> : <RocketOutlined style={{ fontSize: 30, color: '#5865F2' }} />}
+                    <Title level={4} style={{ color: '#fff', margin: 0, fontWeight: 800, letterSpacing: 1 }}>{appName.toUpperCase()}</Title>
+                </div>
                 <Space>
-                    <Button type="text" style={{ color: '#fff' }} onClick={() => window.open('https://discord.com', '_blank')}>Support</Button>
-                    <Button type="primary" shape="round" onClick={handleCta}>
-                        {user ? 'Go to Dashboard' : 'Login'}
+                    <Button type="link" style={{ color: '#ccc' }}>Documentation</Button>
+                    <Button type="link" style={{ color: '#ccc' }}>Support</Button>
+                    <Button shape="round" ghost style={{ borderColor: 'rgba(255,255,255,0.3)', color: '#fff' }} onClick={() => navigate('/login')}>
+                        {user ? 'Dashboard' : 'Login'}
                     </Button>
                 </Space>
             </Navbar>
 
-            <HeroSection>
-                <Title style={{ color: '#fff', fontSize: '4rem', marginBottom: 20 }}>
-                    Supercharge your <GradientText>Discord Server</GradientText>
-                </Title>
-                <Paragraph style={{ color: '#ccc', fontSize: '1.2rem', maxWidth: 600, marginBottom: 40 }}>
-                    The all-in-one bot for moderation, music, leveling, and analytics.
-                    Manage your community with a beautiful, easy-to-use dashboard.
-                </Paragraph>
-                <Space size="large">
-                    <Button type="primary" size="large" shape="round" icon={<RocketOutlined />} style={{ height: 50, padding: '0 40px', fontSize: '1.2rem' }} onClick={handleCta}>
-                        Get Started
-                    </Button>
-                    <Button size="large" shape="round" ghost style={{ height: 50, padding: '0 40px', fontSize: '1.2rem', borderColor: '#fff', color: '#fff' }} onClick={() => document.getElementById('features').scrollIntoView({ behavior: 'smooth' })}>
-                        Learn More
-                    </Button>
+            {/* Decorative Floating Elements */}
+            <FloatingCard style={{ top: '20%', left: '10%', animationDelay: '0s' }}>
+                <Space>
+                    <Avatar style={{ backgroundColor: '#5865F2' }} icon={<DiscordOutlined />} />
+                    <div>
+                        <Text strong style={{ color: '#fff' }}>New Member</Text><br />
+                        <Text type="secondary" style={{ fontSize: 12 }}>Just joined the server!</Text>
+                    </div>
                 </Space>
+            </FloatingCard>
+
+            <FloatingCard style={{ bottom: '20%', right: '10%', animationDelay: '2s' }}>
+                <Space>
+                    <CustomerServiceOutlined style={{ fontSize: 24, color: '#eb459e' }} />
+                    <div>
+                        <Text strong style={{ color: '#fff' }}>Now Playing</Text><br />
+                        <Text type="secondary" style={{ fontSize: 12 }}>Lofi Hip Hop - 24/7</Text>
+                    </div>
+                </Space>
+            </FloatingCard>
+
+            <HeroSection>
+                <div style={{ maxWidth: 800, animation: `${fadeIn} 1s ease-out` }}>
+                    <div style={{ marginBottom: 20 }}>
+                        <span style={{
+                            padding: '8px 16px',
+                            background: 'rgba(88, 101, 242, 0.1)',
+                            border: '1px solid rgba(88, 101, 242, 0.3)',
+                            borderRadius: 20,
+                            color: '#5865F2',
+                            fontWeight: 600,
+                            fontSize: 14
+                        }}>
+                            ✨ V2.0 is live with Advanced Analytics
+                        </span>
+                    </div>
+                    <Title style={{ fontSize: 'clamp(3rem, 5vw, 5rem)', margin: '20px 0', color: '#fff', lineHeight: 1.1 }}>
+                        The Only Bot You Need For <GradientText>Growth</GradientText>
+                    </Title>
+                    <Paragraph style={{ fontSize: '1.25rem', color: '#b9bbbe', margin: '0 auto 40px auto', maxWidth: 600, lineHeight: 1.6 }}>
+                        Manage your diverse communities with a modular, highly customizable dashboard. Moderation, Music, Leveling, and more.
+                    </Paragraph>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: 20 }}>
+                        <CtaButton type="primary" size="large" onClick={handleCta}>
+                            {user ? 'Open Dashboard' : 'Add to Discord'} <RightOutlined />
+                        </CtaButton>
+                        <Button size="large" style={{
+                            height: 60,
+                            padding: '0 40px',
+                            fontSize: '1.2rem',
+                            borderRadius: '30px',
+                            background: 'rgba(255,255,255,0.05)',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            color: '#fff'
+                        }}>
+                            View Features
+                        </Button>
+                    </div>
+                </div>
             </HeroSection>
 
-            <FeaturesSection id="features">
-                <Title level={2} style={{ color: '#fff', textAlign: 'center', marginBottom: 60 }}>
-                    Everything you need
+            <FeatureGrid>
+                <Title level={2} style={{ textAlign: 'center', color: '#fff', marginBottom: 60 }}>
+                    Power-packed Modules
                 </Title>
-                <Row gutter={[32, 32]} justify="center">
+                <Row gutter={[32, 32]}>
                     {features.map((f, i) => (
-                        <Col xs={24} sm={12} md={6} key={i}>
-                            <FeatureCard>
-                                <Space direction="vertical" size="large" style={{ width: '100%' }}>
+                        <Col xs={24} md={8} key={i}>
+                            <ModernCard bordered={false}>
+                                <div style={{ marginBottom: 24, transition: 'transform 0.3s' }} className="icon-wrapper">
                                     {f.icon}
-                                    <div>
-                                        <Title level={4} style={{ color: '#fff', margin: 0 }}>{f.title}</Title>
-                                        <Text style={{ color: '#aaa' }}>{f.desc}</Text>
-                                    </div>
-                                </Space>
-                            </FeatureCard>
+                                </div>
+                                <Title level={4} style={{ color: '#fff' }}>{f.title}</Title>
+                                <Paragraph style={{ color: '#b9bbbe' }}>{f.desc}</Paragraph>
+                            </ModernCard>
                         </Col>
                     ))}
                 </Row>
-            </FeaturesSection>
+            </FeatureGrid>
 
-            <div style={{ textAlign: 'center', padding: '40px', background: '#0a0a0a', color: '#444' }}>
-                NovaBot &copy; 2026. Built for Communities.
+            <div style={{ padding: '80px 20px', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', background: '#050505' }}>
+                <Title level={3} style={{ color: '#fff' }}>Ready to transform your server?</Title>
+                <Button type="primary" size="large" shape="round" style={{ marginTop: 20, height: 50, padding: '0 40px' }} onClick={handleCta}>
+                    Get Started Now
+                </Button>
+                <div style={{ marginTop: 60, color: '#444' }}>
+                    &copy; 2026 Rheox Bot. All rights reserved.
+                </div>
             </div>
-        </Container>
+        </PageWrapper>
     );
 };
 

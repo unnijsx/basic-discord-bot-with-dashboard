@@ -87,11 +87,7 @@ const MainLayout = () => {
             icon: <DashboardOutlined />,
             label: 'Overview',
         },
-        {
-            key: `/dashboard/${guildId}/analytics`,
-            icon: <BarChartOutlined />,
-            label: 'Analytics',
-        },
+
         {
             key: 'modules',
             label: 'Modules',
