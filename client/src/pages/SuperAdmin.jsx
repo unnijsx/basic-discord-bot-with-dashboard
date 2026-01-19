@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Layout, Card, Switch, Statistic, Row, Col, Input, Button, Alert, message, List, Tag } from 'antd';
-import { ThunderboltOutlined, WarningOutlined, DatabaseOutlined, GlobalOutlined } from '@ant-design/icons';
+import { Layout, Card, Switch, Statistic, Row, Col, Input, Button, Alert, message, List, Tag, Select } from 'antd';
+import { ThunderboltOutlined, WarningOutlined, DatabaseOutlined, GlobalOutlined, RobotOutlined } from '@ant-design/icons';
 import axios from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 
@@ -64,6 +64,29 @@ const SuperAdmin = () => {
             fetchData(); // Refresh config to see current alert
         } catch (error) {
             message.error('Failed to broadcast message');
+        }
+    };
+
+    // Bot Status Logic
+    const [botStatus, setBotStatus] = useState({
+        status: 'online',
+        activityType: 'Playing',
+        activityText: ''
+    });
+
+    useEffect(() => {
+        if (config?.botStatus) {
+            setBotStatus(config.botStatus);
+        }
+    }, [config]);
+
+    const handleStatusSave = async () => {
+        try {
+            await axios.put('/admin/system-config', { botStatus });
+            message.success('Bot status updated successfully!');
+            fetchData();
+        } catch (error) {
+            message.error('Failed to update bot status');
         }
     };
 
@@ -144,6 +167,43 @@ const SuperAdmin = () => {
                                     showIcon
                                 />
                             )}
+                        </Card>
+
+                        <Card title={<span><RobotOutlined /> Bot Identity</span>} bordered={false} style={{ marginTop: 24 }}>
+                            <div style={{ marginBottom: 16 }}>
+                                <label style={{ display: 'block', marginBottom: 8 }}>Status</label>
+                                <Select
+                                    value={botStatus.status}
+                                    onChange={(val) => setBotStatus({ ...botStatus, status: val })}
+                                    style={{ width: '100%' }}
+                                >
+                                    <Select.Option value="online">Online</Select.Option>
+                                    <Select.Option value="idle">Idle</Select.Option>
+                                    <Select.Option value="dnd">Do Not Disturb</Select.Option>
+                                    <Select.Option value="invisible">Invisible</Select.Option>
+                                </Select>
+                            </div>
+                            <div style={{ marginBottom: 16 }}>
+                                <label style={{ display: 'block', marginBottom: 8 }}>Activity Type</label>
+                                <Select
+                                    value={botStatus.activityType}
+                                    onChange={(val) => setBotStatus({ ...botStatus, activityType: val })}
+                                    style={{ width: '100%' }}
+                                >
+                                    <Select.Option value="Playing">Playing</Select.Option>
+                                    <Select.Option value="Watching">Watching</Select.Option>
+                                    <Select.Option value="Listening">Listening</Select.Option>
+                                    <Select.Option value="Competing">Competing</Select.Option>
+                                </Select>
+                            </div>
+                            <div style={{ marginBottom: 16 }}>
+                                <label style={{ display: 'block', marginBottom: 8 }}>Activity Text</label>
+                                <Input
+                                    value={botStatus.activityText}
+                                    onChange={(e) => setBotStatus({ ...botStatus, activityText: e.target.value })}
+                                />
+                            </div>
+                            <Button type="primary" onClick={handleStatusSave}>Update Presence</Button>
                         </Card>
                     </Col>
 

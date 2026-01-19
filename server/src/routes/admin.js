@@ -35,6 +35,27 @@ router.put('/system-config', async (req, res) => {
             { $set: req.body },
             { new: true, upsert: true }
         );
+
+        // Apply Status Real-time
+        if (req.body.botStatus && req.botClient) {
+            const { status, activityType, activityText } = req.body.botStatus;
+            const { ActivityType } = require('discord.js');
+            const typeMap = {
+                'Playing': ActivityType.Playing,
+                'Watching': ActivityType.Watching,
+                'Listening': ActivityType.Listening,
+                'Competing': ActivityType.Competing
+            };
+
+            req.botClient.user.setPresence({
+                status: status,
+                activities: [{
+                    name: activityText,
+                    type: typeMap[activityType] || ActivityType.Playing
+                }]
+            });
+        }
+
         res.json(config);
     } catch (err) {
         res.status(500).json({ error: err.message });

@@ -28,6 +28,13 @@ const SystemConfigSchema = new mongoose.Schema({
         message: { type: String },
         active: { type: Boolean, default: false },
         type: { type: String, enum: ['info', 'warning', 'error'], default: 'info' }
+    },
+
+    // Bot Identity
+    botStatus: {
+        status: { type: String, enum: ['online', 'idle', 'dnd', 'invisible'], default: 'online' },
+        activityType: { type: String, enum: ['Playing', 'Watching', 'Listening', 'Competing'], default: 'Playing' },
+        activityText: { type: String, default: 'Discord' }
     }
 }, { timestamps: true });
 
