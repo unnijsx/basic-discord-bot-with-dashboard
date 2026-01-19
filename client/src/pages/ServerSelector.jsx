@@ -6,6 +6,8 @@ import styled from 'styled-components';
 import { useAuth } from '../context/AuthContext';
 import { ThunderboltOutlined, SearchOutlined, RobotOutlined, SettingOutlined } from '@ant-design/icons';
 
+import PremiumNavbar from '../components/Layout/PremiumNavbar';
+
 const { Title, Text } = Typography;
 
 const Container = styled.div`
