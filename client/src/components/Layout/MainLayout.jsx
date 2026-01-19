@@ -18,6 +18,7 @@ import {
 import { Outlet, useNavigate, useLocation, useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { useBranding } from '../../context/BrandingContext';
+import { useAuth } from '../../context/AuthContext';
 
 const { Header, Sider, Content } = Layout;
 
@@ -66,21 +67,10 @@ const MainLayout = () => {
     const location = useLocation();
     const { guildId } = useParams();
     const { appName, appLogo } = useBranding();
+    const { user } = useAuth();
     const screens = Grid.useBreakpoint();
 
-    // Determine if we are on mobile based on screens.md
-    // screens.md is true if width >= 768px.
-    const isMobile = !screens.md;
-
-    // Simplified responsive logic:
-    // If width < 768px (md), sidebar is hidden and we show hamburger.
-
-    // Let's rely on CSS media queries or a hook.
-
-    // Let's use a simple state synced with window for now or just Antd's `breakpoint` prop on Sider, 
-    // but we want a Drawer for mobile, not just a collapsed Sider.
-
-    // We will render Drawer on small screens and Sider on large screens.
+    // ... (rest of logic)
 
     const items = [
         {
@@ -118,6 +108,17 @@ const MainLayout = () => {
             label: 'Settings',
         },
     ];
+
+    if (user?.isSuperAdmin) {
+        items.push({
+            type: 'divider',
+        });
+        items.push({
+            key: '/super-admin',
+            icon: <ThunderboltOutlined style={{ color: '#ff4d4f' }} />,
+            label: <span style={{ color: '#ff4d4f' }}>Super Admin</span>,
+        });
+    }
 
     const menuProps = {
         items: [
