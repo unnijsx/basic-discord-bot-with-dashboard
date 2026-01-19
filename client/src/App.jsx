@@ -2,6 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { App as AntdApp } from 'antd';
 import LandingPage from './pages/LandingPage';
+import About from './pages/About';
+import Support from './pages/Support';
 import Login from './pages/Login';
 import MainLayout from './components/Layout/MainLayout';
 import DashboardHome from './pages/DashboardHome';
@@ -31,6 +33,8 @@ const App = () => {
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/support" element={<Support />} />
 
               {/* Protected Routes */}
               <Route path="/dashboard" element={<ProtectedRoute><ServerSelector /></ProtectedRoute>} />

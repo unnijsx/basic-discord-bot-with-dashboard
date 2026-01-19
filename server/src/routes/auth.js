@@ -45,7 +45,14 @@ router.get('/guilds', async (req, res) => {
         });
         // Filter guilds where user has MANAGE_GUILD (0x20) permission
         const adminGuilds = response.data.filter(guild => (guild.permissions & 0x20) === 0x20);
-        res.json(adminGuilds);
+
+        // Check if Bot is in these guilds
+        const guildsWithBotStatus = adminGuilds.map(guild => {
+            const botInGuild = req.botClient ? req.botClient.guilds.cache.has(guild.id) : false;
+            return { ...guild, botInGuild };
+        });
+
+        res.json(guildsWithBotStatus);
     } catch (err) {
         console.error('Fetch Guilds Error:', err.response?.data || err.message);
         res.status(500).json({ message: 'Failed to fetch guilds', error: err.message });
