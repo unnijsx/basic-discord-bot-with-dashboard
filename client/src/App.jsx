@@ -24,7 +24,6 @@ import { AuthProvider } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import Settings from './pages/Settings';
 import ProtectedRoute from './components/ProtectedRoute';
-import ProtectedRoute from './components/ProtectedRoute';
 import TicketSystem from './pages/modules/TicketSystem';
 import TicketHistory from './pages/modules/TicketHistory';
 
