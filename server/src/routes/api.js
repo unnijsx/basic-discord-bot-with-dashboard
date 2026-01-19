@@ -1,9 +1,10 @@
 const router = require('express').Router();
 const Guild = require('../models/Guild');
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const Level = require('../models/Level');
 const { logAction } = require('../utils/auditLogger');
 const AuditLog = require('../models/AuditLog');
+const TicketPanel = require('../models/TicketPanel');
 
 // Get Guild Basic Info
 router.get('/guilds/:guildId', async (req, res) => {
@@ -362,6 +363,86 @@ router.post('/guilds/:guildId/backup', async (req, res) => {
 
         res.json({ success: true, message: 'Backup restored successfully' });
     } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// =======================
+// TICKET SYSTEM
+// =======================
+
+// Get Ticket Panel Config
+router.get('/guilds/:guildId/tickets/panel', async (req, res) => {
+    try {
+        let panel = await TicketPanel.findOne({ guildId: req.params.guildId });
+        if (!panel) {
+            panel = new TicketPanel({ guildId: req.params.guildId });
+            await panel.save();
+        }
+        res.json(panel);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Update Ticket Panel Config
+router.post('/guilds/:guildId/tickets/panel', async (req, res) => {
+    try {
+        const panel = await TicketPanel.findOneAndUpdate(
+            { guildId: req.params.guildId },
+            req.body,
+            { new: true, upsert: true }
+        );
+
+        // Audit Log
+        if (req.user) {
+            logAction(req.params.guildId, 'UPDATE_TICKET_PANEL', req.user, req.body);
+        }
+
+        res.json(panel);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Deploy Ticket Panel to Channel
+router.post('/guilds/:guildId/tickets/send', async (req, res) => {
+    try {
+        const { channelId } = req.body;
+        const panel = await TicketPanel.findOne({ guildId: req.params.guildId });
+
+        if (!panel) return res.status(404).json({ message: 'Panel not configured' });
+
+        const guild = req.botClient.guilds.cache.get(req.params.guildId);
+        const channel = guild.channels.cache.get(channelId);
+
+        if (!guild || !channel) return res.status(404).json({ message: 'Guild or Channel not found' });
+
+        const embed = new EmbedBuilder()
+            .setTitle(panel.title)
+            .setDescription(panel.description)
+            .setColor('#5865F2')
+            .setFooter({ text: 'Powered by Rheox Tickets' });
+
+        const row = new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId('ticket_create')
+                    .setLabel(panel.buttonText)
+                    .setEmoji(panel.buttonEmoji || '🎫')
+                    .setStyle(ButtonStyle.Primary)
+            );
+
+        await channel.send({ embeds: [embed], components: [row] });
+
+        // Audit Log
+        if (req.user) {
+            logAction(req.params.guildId, 'DEPLOY_TICKET_PANEL', req.user, { channelName: channel.name });
+        }
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
         res.status(500).json({ error: err.message });
     }
 });

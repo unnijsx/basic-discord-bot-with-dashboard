@@ -24,6 +24,7 @@ import { AuthProvider } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import Settings from './pages/Settings';
 import ProtectedRoute from './components/ProtectedRoute';
+import TicketSystem from './pages/modules/TicketSystem';
 
 
 
@@ -61,6 +62,7 @@ const App = () => {
                 <Route path="moderation" element={<Moderation />} />
                 <Route path="leveling" element={<Leveling />} />
                 <Route path="music" element={<Music />} />
+                <Route path="tickets" element={<TicketSystem />} />
                 <Route path="logging" element={<Logging />} />
                 <Route path="messages" element={<EmbedBuilder />} />
                 <Route path="management" element={<ServerManagement />} />
