@@ -75,7 +75,9 @@ router.get('/:guildId/search', checkAuth, async (req, res) => {
     if (!node) return res.status(503).json({ message: 'No nodes available' });
 
     try {
-        const result = await node.rest.resolve(query);
+        const isUrl = /^https?:\/\//.test(query);
+        const searchNode = isUrl ? query : `ytsearch:${query}`;
+        const result = await node.rest.resolve(searchNode);
         if (!result) return res.json([]);
 
         let tracks = [];
@@ -128,7 +130,9 @@ router.post('/:guildId/control', checkAuth, async (req, res) => {
                 if (!player) return res.status(400).json({ message: 'Bot must be in voice channel to play via Dashboard' });
 
                 const node = shoukaku.options.nodeResolver(shoukaku.nodes);
-                const result = await node.rest.resolve(query);
+                const isUrl = /^https?:\/\//.test(query);
+                const searchNode = isUrl ? query : `ytsearch:${query}`;
+                const result = await node.rest.resolve(searchNode);
                 if (!result || ['empty', 'error', 'NONE'].includes(result.loadType)) {
                     return res.status(400).json({ message: 'No tracks found' });
                 }
