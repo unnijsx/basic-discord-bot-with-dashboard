@@ -13,7 +13,10 @@ const { useBreakpoint } = Grid;
 const NavbarContainer = styled.nav`
   position: fixed;
   top: 0;
-  width: 100%;
+  left: 0;
+  right: 0;
+  /* width: 100% caused overflow with padding */
+  box-sizing: border-box;
   padding: 20px 50px;
   display: flex;
   justify-content: space-between;
