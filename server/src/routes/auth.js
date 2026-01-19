@@ -53,9 +53,18 @@ router.get('/guilds', async (req, res) => {
         });
 
         res.json(guildsWithBotStatus);
+        res.json(guildsWithBotStatus);
     } catch (err) {
         console.error('Fetch Guilds Error:', err.response?.data || err.message);
-        res.status(500).json({ message: 'Failed to fetch guilds', error: err.message });
+
+        if (err.response && err.response.status === 401) {
+            req.logout((logoutErr) => {
+                if (logoutErr) console.error('Logout Error:', logoutErr);
+                return res.status(401).json({ message: 'Session expired, please login again.' });
+            });
+        } else {
+            res.status(500).json({ message: 'Failed to fetch guilds', error: err.message });
+        }
     }
 });
 
