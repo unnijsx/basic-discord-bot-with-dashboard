@@ -34,7 +34,11 @@ const App = () => {
         <SocketProvider>
           <Router>
             <Routes>
+              import Features from './pages/Features';
+
+              // ...
               <Route path="/" element={<LandingPage />} />
+              <Route path="/features" element={<Features />} />
               <Route path="/login" element={<Login />} />
               <Route path="/about" element={<About />} />
               <Route path="/support" element={<Support />} />

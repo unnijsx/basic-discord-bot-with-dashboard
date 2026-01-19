@@ -266,7 +266,7 @@ const LandingPage = () => {
             <CtaButton type="primary" size="large" onClick={handleCta}>
               {user ? 'Open Dashboard' : 'Add to Discord'} <RightOutlined />
             </CtaButton>
-            <Button size="large" style={{
+            <Button size="large" onClick={() => navigate('/features')} style={{
               height: 60,
               padding: '0 40px',
               fontSize: '1.2rem',
