@@ -172,6 +172,9 @@ const Music = () => {
                                         onChange={(val) => { setDragging(true); setPosition(val); }}
                                         onAfterChange={handleSeek}
                                         tooltip={{ formatter: formatTime }}
+                                        trackStyle={{ height: 10 }}
+                                        railStyle={{ height: 10 }}
+                                        handleStyle={{ width: 22, height: 22, marginTop: -6 }}
                                     />
                                 </div>
                             )}
