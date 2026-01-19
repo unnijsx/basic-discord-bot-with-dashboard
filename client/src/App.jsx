@@ -27,10 +27,6 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ProtectedRoute from './components/ProtectedRoute';
 import TicketSystem from './pages/modules/TicketSystem';
 import TicketHistory from './pages/modules/TicketHistory';
-import TicketHistory from './pages/modules/TicketHistory';
-import MusicDashboard from './pages/modules/MusicDashboard'; // Assuming MusicDashboard was renamed or I should match the file content exactly?
-// Wait, looking at line 13: import Music from './pages/modules/Music';
-// I should just add TicketHistory.
 
 
 
