@@ -109,6 +109,11 @@ const FloatingCard = styled.div`
   }
 `;
 
+const FadeInDiv = styled.div`
+  animation: ${fadeIn} 1s ease-out;
+  max-width: 800px;
+`;
+
 const FeatureGrid = styled.div`
   padding: 100px 50px;
   max-width: 1400px;
@@ -242,7 +247,7 @@ const LandingPage = () => {
       </FloatingCard>
 
       <HeroSection>
-        <div style={{ maxWidth: 800, animation: `${fadeIn} 1s ease-out` }}>
+        <FadeInDiv>
           <div style={{ marginBottom: 20 }}>
             <span style={{
               padding: '8px 16px',
@@ -278,7 +283,7 @@ const LandingPage = () => {
               View Features
             </Button>
           </div>
-        </div>
+        </FadeInDiv>
       </HeroSection>
 
       <FeatureGrid>
