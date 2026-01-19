@@ -37,8 +37,9 @@ router.get('/logout', (req, res) => {
 // Get Current User
 router.get('/me', (req, res) => {
     if (req.user) {
-        const superAdmins = (process.env.SUPER_ADMIN_IDS || '').split(',');
+        const superAdmins = (process.env.SUPER_ADMIN_IDS || '').split(',').map(id => id.trim());
         const isSuperAdmin = superAdmins.includes(req.user.id);
+        console.log(`[Auth] User: ${req.user.id} | Admins: ${JSON.stringify(superAdmins)} | IsSuper: ${isSuperAdmin}`);
         res.json({ ...req.user, isSuperAdmin });
     } else {
         res.status(401).json({ message: 'Unauthorized' });
