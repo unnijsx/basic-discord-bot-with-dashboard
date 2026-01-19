@@ -70,7 +70,9 @@ const MainLayout = () => {
     const { user } = useAuth();
     const screens = Grid.useBreakpoint();
 
-    // ... (rest of logic)
+    // Determine if we are on mobile based on screens.md
+    // screens.md is true if width >= 768px.
+    const isMobile = !screens.md;
 
     const items = [
         {
