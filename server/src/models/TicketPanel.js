@@ -11,6 +11,13 @@ const TicketPanelSchema = new mongoose.Schema({
     ticketCategory: { type: String }, // Discord Category ID to create tickets in
     supportRole: { type: String }, // Role ID to ping/add to ticket
     namingScheme: { type: String, default: 'ticket-{username}' }, // 'ticket-{username}' or 'ticket-{id}'
+    formQuestions: [{
+        label: String, // Question Text
+        placeholder: String,
+        style: { type: String, enum: ['Short', 'Paragraph'], default: 'Paragraph' },
+        required: { type: Boolean, default: true },
+        maxLength: Number
+    }],
     createdAt: { type: Date, default: Date.now }
 });
 

@@ -79,6 +79,9 @@ module.exports = {
             if (interaction.customId === 'ticket_create' || interaction.customId.startsWith('ticket_create_')) {
                 await handleTicketCreate(interaction);
             }
+            if (interaction.customId === 'ticket_claim') {
+                await handleTicketClaim(interaction);
+            }
             return;
         }
 
@@ -87,6 +90,11 @@ module.exports = {
             if (interaction.customId.startsWith('form_submit_')) {
                 const formId = interaction.customId.split('_')[2];
                 await handleFormSubmit(interaction, formId);
+            }
+            // Ticket Modal Submit
+            if (interaction.customId.startsWith('ticket_modal_')) {
+                const uniqueId = interaction.customId.split('_')[2];
+                await handleTicketModalSubmit(interaction, uniqueId);
             }
         }
     },
@@ -100,94 +108,190 @@ const { logAction } = require('../../utils/auditLogger');
 
 async function handleTicketCreate(interaction) {
     try {
-        await interaction.deferReply({ ephemeral: true });
-
-        // 1. Identify Panel ID from Custom ID
+        // 1. Identify Panel ID
         let panel;
         const parts = interaction.customId.split('_'); // ticket_create_UNIQUEID
         if (parts.length === 3) {
             const uniqueId = parts[2];
             panel = await TicketPanel.findOne({ guildId: interaction.guildId, uniqueId });
         } else {
-            // Fallback for old buttons
+            // Fallback
             panel = await TicketPanel.findOne({ guildId: interaction.guildId }).sort({ createdAt: -1 });
         }
 
-        if (!panel) return interaction.editReply('❌ Ticket panel configuration not found.');
+        if (!panel) return interaction.reply({ content: '❌ Ticket panel configuration not found.', ephemeral: true });
 
-        // 2. Fetch Config
-        // ... (We already have 'panel')
+        // 2. Check for Forms
+        if (panel.formQuestions && panel.formQuestions.length > 0) {
+            // SHOW MODAL
+            const modal = new ModalBuilder()
+                .setCustomId(`ticket_modal_${panel.uniqueId || 'default'}`)
+                .setTitle('Ticket Details');
 
-        // 3. Create Channel
-        const { guild, user } = interaction;
-        const channelName = panel.namingScheme
-            .replace('{username}', user.username)
-            .replace('{id}', user.id.substring(user.id.length - 4));
+            panel.formQuestions.forEach((q, index) => {
+                const input = new TextInputBuilder()
+                    .setCustomId(`question_${index}`)
+                    .setLabel(q.label.substring(0, 45))
+                    .setRequired(q.required)
+                    .setStyle(q.style === 'Short' ? TextInputStyle.Short : TextInputStyle.Paragraph);
 
-        const permissionOverwrites = [
-            {
-                id: guild.id,
-                deny: [PermissionFlagsBits.ViewChannel]
-            },
-            {
-                id: user.id,
-                allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages]
-            },
-            {
-                id: interaction.client.user.id,
-                allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ManageChannels]
-            }
-        ];
+                if (q.placeholder) input.setPlaceholder(q.placeholder);
 
-        if (panel.supportRole) {
-            permissionOverwrites.push({
-                id: panel.supportRole,
-                allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages]
+                modal.addComponents(new ActionRowBuilder().addComponents(input));
             });
+
+            await interaction.showModal(modal);
+            return;
         }
 
-        const ticketChannel = await guild.channels.create({
-            name: channelName,
-            type: ChannelType.GuildText,
-            parent: panel.ticketCategory || null,
-            permissionOverwrites
-        });
-
-        // 4. Save to DB
-        const newTicket = new Ticket({
-            guildId: guild.id,
-            channelId: ticketChannel.id,
-            userId: user.id,
-            status: 'open'
-        });
-        await newTicket.save();
-
-        // 5. Send Welcome Message
-        const embed = new EmbedBuilder()
-            .setTitle(`Ticket: ${channelName}`)
-            .setDescription(`Hello ${user}, support will be with you shortly.\n\nTo close this ticket, use the button below or \`/ticket close\`.`)
-            .setColor('#5865F2');
-
-        const row = new ActionRowBuilder()
-            .addComponents(
-                new ButtonBuilder()
-                    .setLabel('Close Ticket')
-                    .setCustomId('ticket_close_confirm') // We can handle this later or just rely on command
-                    .setStyle(ButtonStyle.Danger)
-                    .setEmoji('🔒')
-            );
-
-        await ticketChannel.send({ content: `${user} <@&${panel.supportRole || ''}>`, embeds: [embed] });
-        //, components: [row] // Add button if we handle it
-
-        // Log
-        await logAction(guild.id, 'TICKET_CREATE', user, { channelName, ticketId: newTicket._id });
-
-        await interaction.editReply(`✅ Ticket created: ${ticketChannel}`);
+        // 3. No Form -> Create Ticket Immediately
+        await interaction.deferReply({ ephemeral: true });
+        await createTicketChannel(interaction, panel, []);
 
     } catch (err) {
         console.error('Ticket Create Error:', err);
         if (interaction.deferred) await interaction.editReply('❌ Failed to create ticket. Check bot permissions.');
+        else await interaction.reply({ content: '❌ Error creating ticket.', ephemeral: true });
+    }
+}
+
+async function handleTicketModalSubmit(interaction, uniqueId) {
+    try {
+        await interaction.deferReply({ ephemeral: true });
+
+        const panel = await TicketPanel.findOne({ guildId: interaction.guildId, uniqueId });
+        if (!panel) return interaction.editReply('❌ Panel not found.');
+
+        // Extract Answers
+        const answers = [];
+        panel.formQuestions.forEach((q, index) => {
+            const answer = interaction.fields.getTextInputValue(`question_${index}`);
+            answers.push({ question: q.label, answer });
+        });
+
+        await createTicketChannel(interaction, panel, answers);
+
+    } catch (err) {
+        console.error('Ticket Modal Error:', err);
+        await interaction.editReply('❌ Failed to submit ticket form.');
+    }
+}
+
+async function createTicketChannel(interaction, panel, formAnswers = []) {
+    const { guild, user } = interaction;
+    const channelName = panel.namingScheme
+        .replace('{username}', user.username)
+        .replace('{id}', user.id.substring(user.id.length - 4));
+
+    const permissionOverwrites = [
+        {
+            id: guild.id,
+            deny: [PermissionFlagsBits.ViewChannel]
+        },
+        {
+            id: user.id,
+            allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages]
+        },
+        {
+            id: interaction.client.user.id,
+            allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ManageChannels]
+        }
+    ];
+
+    if (panel.supportRole) {
+        permissionOverwrites.push({
+            id: panel.supportRole,
+            allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages]
+        });
+    }
+
+    const ticketChannel = await guild.channels.create({
+        name: channelName,
+        type: ChannelType.GuildText,
+        parent: panel.ticketCategory || null,
+        permissionOverwrites
+    });
+
+    const newTicket = new Ticket({
+        guildId: guild.id,
+        channelId: ticketChannel.id,
+        userId: user.id,
+        status: 'open'
+    });
+    await newTicket.save();
+
+    const embed = new EmbedBuilder()
+        .setTitle(`Ticket: ${channelName}`)
+        .setDescription(`Hello ${user}, support will be with you shortly.\n\nTo close this ticket, use the button below or \`/ticket close\`.`)
+        .setColor('#5865F2');
+
+    if (formAnswers.length > 0) {
+        const fields = formAnswers.map(a => ({ name: a.question, value: a.answer }));
+        embed.addFields(fields);
+    }
+
+    const row = new ActionRowBuilder()
+        .addComponents(
+            new ButtonBuilder()
+                .setLabel('Close Ticket')
+                .setCustomId('ticket_close_confirm')
+                .setStyle(ButtonStyle.Danger)
+                .setEmoji('🔒'),
+            new ButtonBuilder()
+                .setLabel('Claim Ticket')
+                .setCustomId('ticket_claim')
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji('🙋‍♂️')
+        );
+
+    await ticketChannel.send({ content: `${user} <@&${panel.supportRole || ''}>`, embeds: [embed], components: [row] });
+
+    await logAction(guild.id, 'TICKET_CREATE', user, { channelName, ticketId: newTicket._id });
+
+    await interaction.editReply(`✅ Ticket created: ${ticketChannel}`);
+}
+
+async function handleTicketClaim(interaction) {
+    try {
+        await interaction.deferUpdate();
+        const { channel, user, guild } = interaction;
+
+        const ticket = await Ticket.findOne({ channelId: channel.id });
+        if (!ticket) return interaction.followUp({ content: '❌ Ticket not found in DB.', ephemeral: true });
+
+        if (ticket.claimedBy) {
+            return interaction.followUp({ content: `❌ Already claimed by <@${ticket.claimedBy}>`, ephemeral: true });
+        }
+
+        ticket.claimedBy = user.id;
+        await ticket.save();
+
+        // Update Embed
+        const oldEmbed = interaction.message.embeds[0];
+        const newEmbed = new EmbedBuilder(oldEmbed.data)
+            .addFields({ name: 'Claimed By', value: `${user} 🙋‍♂️` })
+            .setColor('#FEE75C'); // Yellow for claimed
+
+        // Disable Claim Button
+        const oldRow = interaction.message.components[0];
+        const newRow = new ActionRowBuilder();
+
+        oldRow.components.forEach(comp => {
+            if (comp.customId === 'ticket_claim') {
+                const disabledBtn = ButtonBuilder.from(comp).setDisabled(true).setLabel(`Claimed by ${user.username}`);
+                newRow.addComponents(disabledBtn);
+            } else {
+                newRow.addComponents(comp);
+            }
+        });
+
+        await interaction.editReply({ embeds: [newEmbed], components: [newRow] });
+        await channel.send(`🙋‍♂️ **${user}** has claimed this ticket.`);
+
+        await logAction(guild.id, 'TICKET_CLAIM', user, { channelName: channel.name });
+
+    } catch (err) {
+        console.error('Ticket Claim Error:', err);
     }
 }
 

@@ -235,6 +235,51 @@ const TicketSystem = () => {
                                 </Col>
                             </Row>
 
+                            <Divider orientation="left" style={{ color: '#fff', borderColor: '#ffffff20' }}>Ticket Form (Optional)</Divider>
+                            <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
+                                If you add questions here, a popup form (Modal) will appear when users click the "Create Ticket" button.
+                            </Text>
+
+                            <Form.List name="formQuestions">
+                                {(fields, { add, remove }) => (
+                                    <>
+                                        {fields.map(({ key, name, ...restField }) => (
+                                            <Card key={key} size="small" style={{ background: '#36393f', borderColor: '#202225', marginBottom: 12 }}>
+                                                <Space align="baseline" style={{ width: '100%', justifyContent: 'space-between' }}>
+                                                    <Form.Item
+                                                        {...restField}
+                                                        name={[name, 'label']}
+                                                        rules={[{ required: true, message: 'Question required' }]}
+                                                        style={{ marginBottom: 0, width: 300 }}
+                                                    >
+                                                        <Input placeholder="Question (e.g. What is your issue?)" />
+                                                    </Form.Item>
+
+                                                    <Form.Item
+                                                        {...restField}
+                                                        name={[name, 'style']}
+                                                        initialValue="Paragraph"
+                                                        style={{ marginBottom: 0, width: 120 }}
+                                                    >
+                                                        <Select>
+                                                            <Option value="Short">Short</Option>
+                                                            <Option value="Paragraph">Paragraph</Option>
+                                                        </Select>
+                                                    </Form.Item>
+
+                                                    <DeleteOutlined onClick={() => remove(name)} style={{ color: '#f5222d' }} />
+                                                </Space>
+                                            </Card>
+                                        ))}
+                                        <Form.Item>
+                                            <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />} disabled={fields.length >= 5}>
+                                                Add Question (Max 5)
+                                            </Button>
+                                        </Form.Item>
+                                    </>
+                                )}
+                            </Form.List>
+
                             <Form.Item>
                                 <Button type="primary" htmlType="submit" icon={<SaveOutlined />} loading={loading} block size="large">
                                     Save Configuration
