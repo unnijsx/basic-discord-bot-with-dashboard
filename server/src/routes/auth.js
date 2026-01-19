@@ -5,10 +5,25 @@ const passport = require('passport');
 router.get('/discord', passport.authenticate('discord', { scope: ['identify', 'email', 'guilds'] }));
 
 // Redirect Handler
-router.get('/discord/callback', passport.authenticate('discord', {
-    failureRedirect: `${process.env.FRONTEND_URL}/login?error=auth_failed`
-}), (req, res) => {
-    res.redirect(`${process.env.FRONTEND_URL}/dashboard`);
+router.get('/discord/callback', (req, res, next) => {
+    passport.authenticate('discord', {
+        failureRedirect: `${process.env.FRONTEND_URL}/login?error=auth_failed`
+    }, (err, user, info) => {
+        if (err) {
+            console.error('Auth Callback Error:', err);
+            return res.redirect(`${process.env.FRONTEND_URL}/login?error=auth_error`);
+        }
+        if (!user) {
+            return res.redirect(`${process.env.FRONTEND_URL}/login?error=auth_failed`);
+        }
+        req.logIn(user, (err) => {
+            if (err) {
+                console.error('Login Error:', err);
+                return res.redirect(`${process.env.FRONTEND_URL}/login?error=login_error`);
+            }
+            res.redirect(`${process.env.FRONTEND_URL}/dashboard`);
+        });
+    })(req, res, next);
 });
 
 // Logout
@@ -52,7 +67,6 @@ router.get('/guilds', async (req, res) => {
             return { ...guild, botInGuild };
         });
 
-        res.json(guildsWithBotStatus);
         res.json(guildsWithBotStatus);
     } catch (err) {
         console.error('Fetch Guilds Error:', err.response?.data || err.message);
