@@ -12,7 +12,8 @@ import {
     ToolOutlined,
     FormOutlined,
     CalendarOutlined,
-    MenuOutlined
+    MenuOutlined,
+    DeploymentUnitOutlined
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation, useParams } from 'react-router-dom';
 import styled from 'styled-components';
