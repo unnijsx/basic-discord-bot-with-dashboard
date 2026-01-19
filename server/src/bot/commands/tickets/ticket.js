@@ -9,6 +9,10 @@ module.exports = {
         .setName('ticket')
         .setDescription('Manage support tickets')
         .addSubcommand(sub =>
+            sub.setName('setup')
+                .setDescription('Setup the ticket panel in this channel (Admin Only)')
+        )
+        .addSubcommand(sub =>
             sub.setName('close')
                 .setDescription('Close the current ticket')
                 .addStringOption(option =>
@@ -39,6 +43,49 @@ module.exports = {
         const ticketData = await Ticket.findOne({ channelId: channel.id });
         if (!ticketData && subcommand !== 'setup') {
             return interaction.reply({ content: '❌ This command can only be used in a ticket channel.', ephemeral: true });
+        }
+
+        if (subcommand === 'setup') {
+            // Check Admin Perms
+            if (!member.permissions.has(PermissionFlagsBits.Administrator)) {
+                return interaction.reply({ content: '❌ Only Administrators can use this command.', ephemeral: true });
+            }
+
+            await interaction.deferReply({ ephemeral: true });
+
+            // Fetch Panel Config or Create Default
+            let panel = await TicketPanel.findOne({ guildId: guild.id });
+            if (!panel) {
+                panel = new TicketPanel({
+                    guildId: guild.id,
+                    ticketCategory: channel.parentId // Default to current category
+                });
+                await panel.save();
+            }
+
+            // Create Embed
+            const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+            const embed = new EmbedBuilder()
+                .setTitle(panel.title)
+                .setDescription(panel.description)
+                .setColor('#5865F2')
+                .setFooter({ text: 'Powered by Rheox Tickets' });
+
+            const row = new ActionRowBuilder()
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId('ticket_create')
+                        .setLabel(panel.buttonText)
+                        .setEmoji(panel.buttonEmoji || '🎫')
+                        .setStyle(ButtonStyle.Primary)
+                );
+
+            await channel.send({ embeds: [embed], components: [row] });
+            await interaction.editReply('✅ Ticket Panel deployed to this channel!');
+
+            // Log
+            await logAction(guild.id, 'DEPLOY_TICKET_PANEL', user, { channelName: channel.name });
+            return;
         }
 
         if (subcommand === 'close') {
