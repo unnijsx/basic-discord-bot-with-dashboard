@@ -88,6 +88,33 @@ const Music = () => {
         return () => clearInterval(interval);
     }, [status?.isPlaying, status?.currentTrack, dragging]);
 
+    const handleAction = async (action, payload = {}) => {
+        try {
+            await api.post(`/music/${guildId}/control`, { action, ...payload });
+            message.success(`Command sent: ${action}`);
+        } catch (error) {
+            message.error(error.response?.data?.message || 'Action failed');
+        }
+    };
+
+    const handleSearch = async (value) => {
+        if (!value) return;
+        setSearching(true);
+        try {
+            const { data } = await api.get(`/music/${guildId}/search?query=${encodeURIComponent(value)}`);
+            setSearchResults(data);
+        } catch (error) {
+            message.error('Search failed');
+        } finally {
+            setSearching(false);
+        }
+    };
+
+    const playTrack = async (url) => {
+        await handleAction('play', { query: url });
+        setSearchResults([]);
+    };
+
     const handleSeek = async (val) => {
         setPosition(val);
         setDragging(false);
