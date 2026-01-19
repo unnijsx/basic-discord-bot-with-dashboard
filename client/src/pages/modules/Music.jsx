@@ -24,10 +24,14 @@ const Music = () => {
     const [searchResults, setSearchResults] = useState([]);
     const [searching, setSearching] = useState(false);
 
+    const [position, setPosition] = useState(0);
+    const [dragging, setDragging] = useState(false);
+
     const fetchStatus = async () => {
         try {
             const { data } = await api.get(`/music/${guildId}/status`);
             setStatus(data);
+            if (!dragging) setPosition(data.currentTrack?.position || 0);
         } catch (error) {
             console.error(error);
         } finally {
@@ -42,10 +46,14 @@ const Music = () => {
             socket.emit('joinGuild', guildId);
 
             socket.on('playerUpdate', (data) => {
-                // If just status update, refresh full status or patch it. 
-                // For simplicity, let's re-fetch or patch locally if payload has enough info.
-                // Re-fetching is safer to stay in sync.
-                fetchStatus();
+                // Determine if we should refresh full status or just patch
+                if (data.isPlaying !== undefined) {
+                    setStatus(prev => ({ ...prev, isPlaying: data.isPlaying }));
+                }
+                if (data.position !== undefined && !dragging) {
+                    setPosition(data.position);
+                }
+                fetchStatus(); // Sync full state occasionally
             });
 
             socket.on('queueUpdate', () => {
@@ -59,163 +67,139 @@ const Music = () => {
         }
     }, [guildId, socket]);
 
-    const handleAction = async (action, payload = {}) => {
-        try {
-            await api.post(`/music/${guildId}/control`, { action, ...payload });
-            message.success(`Command sent: ${action}`);
-            // Socket will handle the update
-        } catch (error) {
-            message.error(error.response?.data?.message || 'Action failed');
+    // Local timer for smooth progress
+    useEffect(() => {
+        let interval;
+        if (status?.isPlaying && status?.currentTrack && !dragging) {
+            interval = setInterval(() => {
+                setPosition(prev => Math.min(prev + 1000, status.currentTrack.duration));
+            }, 1000);
         }
+        return () => clearInterval(interval);
+    }, [status?.isPlaying, status?.currentTrack, dragging]);
+
+    const handleSeek = async (val) => {
+        setPosition(val);
+        setDragging(false);
+        await handleAction('seek', { position: val });
     };
 
-    const handleSearch = async (value) => {
-        if (!value) return;
-        setSearching(true);
-        try {
-            const { data } = await api.get(`/music/${guildId}/search?query=${encodeURIComponent(value)}`);
-            setSearchResults(data);
-        } catch (error) {
-            message.error('Search failed');
-        } finally {
-            setSearching(false);
-        }
+    // Helper to format time
+    const formatTime = (ms) => {
+        if (!ms) return '0:00';
+        const minutes = Math.floor(ms / 60000);
+        const seconds = ((ms % 60000) / 1000).toFixed(0).padStart(2, '0');
+        return `${minutes}:${seconds}`;
     };
 
-    const playTrack = async (url) => {
-        await handleAction('play', { query: url });
-        setSearchResults([]); // Clear search after playing
-    };
+    // ... (rest of code)
 
-    if (loading) return <Spin size="large" />;
-
-    // If bot isn't connected to a voice channel, don't show controls
-    if (!status?.connected) {
-        return (
-            <Card variant="outlined" style={{ textAlign: 'center', padding: '50px' }}>
-                <CustomerServiceOutlined style={{ fontSize: '64px', color: '#555', marginBottom: '20px' }} />
-                <Title level={3}>Bot Not Connected</Title>
-                <Text type="secondary">
-                    Join a voice channel in Discord and use <code>/play</code> to start the music session.
-                </Text>
-            </Card>
-        );
-    }
-
-    return (
-        <Space direction="vertical" style={{ width: '100%' }} size="large">
-            {/* Now Playing & Controls */}
-            <Card variant="outlined">
-                <Row gutter={[24, 24]} align="middle">
-                    <Col xs={24} md={8} style={{ textAlign: 'center' }}>
-                        <Avatar
-                            shape="square"
-                            size={180}
-                            src={status.currentTrack?.thumbnail}
-                            icon={<CustomerServiceOutlined />}
-                        />
-                    </Col>
-                    <Col xs={24} md={16}>
-                        {status.currentTrack ? (
-                            <>
-                                <Title level={3} style={{ margin: 0 }}>{status.currentTrack.title}</Title>
-                                <Text type="secondary" style={{ fontSize: '16px' }}>{status.currentTrack.author}</Text>
-                                <div style={{ marginTop: 15 }}>
-                                    <Tag color="blue">{status.currentTrack.duration}</Tag>
-                                </div>
-                            </>
-                        ) : (
-                            <div style={{ padding: '20px 0' }}>
-                                <Title level={4}>No music playing</Title>
-                                <Text>Queue some songs below!</Text>
-                            </div>
-                        )}
-
-                        <Space size="middle" style={{ marginTop: 30, width: '100%' }}>
-                            {status.isPlaying ? (
-                                <Button type="primary" shape="circle" icon={<PauseCircleOutlined />} size="large" onClick={() => handleAction('pause')} />
-                            ) : (
-                                <Button type="primary" shape="circle" icon={<PlayCircleOutlined />} size="large" onClick={() => handleAction('resume')} />
-                            )}
-                            <Button shape="circle" icon={<StepForwardOutlined />} size="large" onClick={() => handleAction('skip')} />
-                            <Button danger shape="circle" icon={<StopOutlined />} size="large" onClick={() => handleAction('stop')} />
-
-                            <div style={{ width: 150, marginLeft: 20 }}>
-                                <SoundOutlined /> Volume
-                                <Slider
-                                    defaultValue={status.volume}
-                                    max={100}
-                                    onChange={(val) => handleAction('volume', { volume: val })}
-                                    tooltip={{ formatter: (value) => `${value}%` }}
-                                />
-                            </div>
-                        </Space>
-                    </Col>
-                </Row>
-            </Card>
-
-            {/* Search Section */}
-            <Card title="Add to Queue" variant="outlined">
-                <Search
-                    placeholder="Search for a song or paste a URL..."
-                    enterButton="Search"
-                    size="large"
-                    onSearch={handleSearch}
-                    loading={searching}
+    <Space size="middle" style={{ marginTop: 30, width: '100%' }}>
+        {/* Progress Bar */}
+        {status.currentTrack && status.currentTrack.duration > 0 && (
+            <div style={{ width: '100%', marginBottom: 10 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Text type="secondary">{formatTime(position)}</Text>
+                    <Text type="secondary">{status.currentTrack.durationString}</Text>
+                </div>
+                <Slider
+                    value={position}
+                    max={status.currentTrack.duration}
+                    onChange={(val) => { setDragging(true); setPosition(val); }}
+                    onAfterChange={handleSeek}
+                    tooltip={{ formatter: formatTime }}
                 />
+            </div>
+        )}
 
-                {searchResults.length > 0 && (
-                    <List
-                        style={{ marginTop: 20 }}
-                        itemLayout="horizontal"
-                        dataSource={searchResults}
-                        renderItem={item => (
-                            <List.Item
-                                actions={[
-                                    <Button type="primary" icon={<PlusOutlined />} onClick={() => playTrack(item.url)}>
-                                        Play
-                                    </Button>
-                                ]}
-                            >
-                                <List.Item.Meta
-                                    avatar={<Avatar src={item.thumbnail} />}
-                                    title={item.title}
-                                    description={`${item.author} • ${item.duration}`}
-                                />
-                            </List.Item>
-                        )}
-                    />
-                )}
-            </Card>
+        {status.isPlaying ? (
+            <Button type="primary" shape="circle" icon={<PauseCircleOutlined />} size="large" onClick={() => handleAction('pause')} />
+        ) : (
+            <Button type="primary" shape="circle" icon={<PlayCircleOutlined />} size="large" onClick={() => handleAction('resume')} />
+        )}
+        <Button shape="circle" icon={<StepForwardOutlined />} size="large" onClick={() => handleAction('skip')} />
+        <Button danger shape="circle" icon={<StopOutlined />} size="large" onClick={() => handleAction('stop')} />
 
-            {/* Queue List */}
-            {status.queue && status.queue.length > 0 && (
-                <Card title={`Up Next (${status.queue.length} songs)`} variant="outlined">
-                    <List
-                        itemLayout="horizontal"
-                        dataSource={status.queue}
-                        pagination={{ pageSize: 5 }}
-                        renderItem={(item, index) => (
-                            <List.Item>
-                                <List.Item.Meta
-                                    avatar={
-                                        item.thumbnail ?
-                                            <Avatar src={item.thumbnail} shape="square" size="large" /> :
-                                            <Avatar style={{ backgroundColor: '#5865F2' }}>{index + 1}</Avatar>
-                                    }
-                                    title={<a href={item.url} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit' }}>{item.title}</a>}
-                                    description={
-                                        <span>
-                                            <Tag>{item.duration}</Tag> {item.author}
-                                        </span>
-                                    }
-                                />
-                            </List.Item>
-                        )}
+        <div style={{ width: 150, marginLeft: 20 }}>
+            <SoundOutlined /> Volume
+            <Slider
+                defaultValue={status.volume}
+                max={100}
+                onChange={(val) => handleAction('volume', { volume: val })}
+                tooltip={{ formatter: (value) => `${value}%` }}
+            />
+        </div>
+    </Space>
+                    </Col >
+                </Row >
+            </Card >
+
+    {/* Search Section */ }
+    < Card title = "Add to Queue" variant = "outlined" >
+        <Search
+            placeholder="Search for a song or paste a URL..."
+            enterButton="Search"
+            size="large"
+            onSearch={handleSearch}
+            loading={searching}
+        />
+
+{
+    searchResults.length > 0 && (
+        <List
+            style={{ marginTop: 20 }}
+            itemLayout="horizontal"
+            dataSource={searchResults}
+            renderItem={item => (
+                <List.Item
+                    actions={[
+                        <Button type="primary" icon={<PlusOutlined />} onClick={() => playTrack(item.url)}>
+                            Play
+                        </Button>
+                    ]}
+                >
+                    <List.Item.Meta
+                        avatar={<Avatar src={item.thumbnail} />}
+                        title={item.title}
+                        description={`${item.author} • ${item.duration}`}
                     />
-                </Card>
+                </List.Item>
             )}
-        </Space>
+        />
+    )
+}
+            </Card >
+
+    {/* Queue List */ }
+{
+    status.queue && status.queue.length > 0 && (
+        <Card title={`Up Next (${status.queue.length} songs)`} variant="outlined">
+            <List
+                itemLayout="horizontal"
+                dataSource={status.queue}
+                pagination={{ pageSize: 5 }}
+                renderItem={(item, index) => (
+                    <List.Item>
+                        <List.Item.Meta
+                            avatar={
+                                item.thumbnail ?
+                                    <Avatar src={item.thumbnail} shape="square" size="large" /> :
+                                    <Avatar style={{ backgroundColor: '#5865F2' }}>{index + 1}</Avatar>
+                            }
+                            title={<a href={item.url} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit' }}>{item.title}</a>}
+                            description={
+                                <span>
+                                    <Tag>{item.duration}</Tag> {item.author}
+                                </span>
+                            }
+                        />
+                    </List.Item>
+                )}
+            />
+        </Card>
+    )
+}
+        </Space >
     );
 };
 

@@ -97,7 +97,9 @@ module.exports = {
                     const nextTrack = guildQueue.tracks.shift();
                     if (nextTrack) {
                         guildQueue.current = nextTrack;
+                        const wasPaused = player.paused;
                         await player.playTrack({ track: { encoded: nextTrack.encoded } });
+                        if (wasPaused) await player.setPaused(true);
                     } else {
                         guildQueue.current = null;
                     }

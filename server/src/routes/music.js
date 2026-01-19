@@ -44,7 +44,8 @@ router.get('/:guildId/status', checkAuth, (req, res) => {
     const queue = guildQueue?.tracks?.map(t => ({
         title: t.info.title,
         author: t.info.author,
-        duration: t.info.length ? new Date(t.info.length).toISOString().substr(14, 5) : 'Live',
+        duration: t.info.length,
+        durationString: t.info.length ? new Date(t.info.length).toISOString().substr(14, 5) : 'Live',
         url: t.info.uri,
         thumbnail: t.info.artworkUrl || ''
     })) || [];
@@ -56,7 +57,9 @@ router.get('/:guildId/status', checkAuth, (req, res) => {
         currentTrack: currentTrack ? {
             title: currentTrack.title,
             author: currentTrack.author,
-            duration: currentTrack.length ? new Date(currentTrack.length).toISOString().substr(14, 5) : 'Live',
+            duration: currentTrack.length,
+            durationString: currentTrack.length ? new Date(currentTrack.length).toISOString().substr(14, 5) : 'Live',
+            position: player.position,
             thumbnail: currentTrack.artworkUrl || '',
             url: currentTrack.uri
         } : null,
@@ -177,6 +180,12 @@ router.post('/:guildId/control', checkAuth, async (req, res) => {
                 break;
             case 'skip':
                 player?.stopTrack();
+                break;
+            case 'seek':
+                if (typeof req.body.position === 'number') {
+                    await player.seekTo(req.body.position);
+                    req.io.to(guildId).emit('playerUpdate', { isPlaying: !player.paused, position: req.body.position });
+                }
                 break;
             case 'stop':
                 if (player) {
