@@ -6,11 +6,7 @@ import styled from 'styled-components';
 import { useAuth } from '../context/AuthContext';
 import { ThunderboltOutlined, SearchOutlined, RobotOutlined, SettingOutlined } from '@ant-design/icons';
 
-const { Title, Text } = Typography;
-
 import PremiumNavbar from '../components/Layout/PremiumNavbar';
-
-const { Title, Text } = Typography;
 
 const Container = styled.div`
     padding: 0;
