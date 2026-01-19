@@ -6,7 +6,7 @@ import styled from 'styled-components';
 import { useAuth } from '../context/AuthContext';
 import { ThunderboltOutlined, SearchOutlined, RobotOutlined, SettingOutlined } from '@ant-design/icons';
 
-import PremiumNavbar from '../components/Layout/PremiumNavbar';
+const { Title, Text } = Typography;
 
 const Container = styled.div`
     padding: 0;
@@ -198,7 +198,6 @@ const ServerSelector = () => {
                 ) : (
                     <Empty description={<span style={{ color: '#b9bbbe' }}>No servers found</span>} style={{ marginTop: 50 }} />
                 )}
-            )}
             </ContentWrapper>
         </Container>
     );
