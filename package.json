@@ -14,6 +14,7 @@
   "description": "",
   "dependencies": {
     "@ant-design/icons": "^6.1.0",
+    "antd": "^6.2.0",
     "axios": "^1.13.2",
     "connect-mongo": "^6.0.0",
     "cookie-parser": "^1.4.7",
@@ -29,8 +30,8 @@
     "opusscript": "^0.0.8",
     "passport": "^0.7.0",
     "passport-discord": "^0.1.4",
-    "shoukaku": "^4.1.0",
     "react-router-dom": "^7.12.0",
+    "shoukaku": "^4.1.0",
     "socket.io": "^4.8.3",
     "styled-components": "^6.3.6"
   },

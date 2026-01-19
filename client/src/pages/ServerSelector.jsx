@@ -14,7 +14,7 @@ const Container = styled.div`
     min-height: 100vh;
 `;
 
-const GuildCard = styled(Card).attrs({ variant: "borderless" })`
+const GuildCard = styled(Card)`
     background: #1e1f22;
     text-align: center;
     border-radius: 12px;
@@ -135,6 +135,7 @@ const ServerSelector = () => {
                         <Col xs={24} sm={12} md={8} lg={6} xl={4} key={guild.id}>
                             <GuildCard
                                 hoverable
+                                bordered={false}
                                 cover={
                                     <Badge count={!guild.botInGuild ? "Invite" : 0} offset={[-20, 20]} color="#faa61a">
                                         <Avatar
