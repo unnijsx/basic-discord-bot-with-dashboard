@@ -110,8 +110,10 @@ router.put('/guilds/:guildId/settings', async (req, res) => {
             updateData.moderationConfig = { ...moderationConfig };
         }
         if (levelingConfig) updateData.levelingConfig = levelingConfig;
+        if (levelingConfig) updateData.levelingConfig = levelingConfig;
         if (loggingConfig) updateData.loggingConfig = loggingConfig;
         if (req.body.welcomeConfig) updateData.welcomeConfig = req.body.welcomeConfig;
+        if (req.body.voiceConfig) updateData.voiceConfig = req.body.voiceConfig;
 
         const settings = await Guild.findOneAndUpdate(
             { guildId: req.params.guildId },
