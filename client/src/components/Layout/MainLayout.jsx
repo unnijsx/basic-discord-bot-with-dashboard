@@ -86,7 +86,7 @@ const MainLayout = () => {
     const [moduleTiers, setModuleTiers] = useState({});
 
     useEffect(() => {
-        api.get('/api/config').then(({ data }) => setModuleTiers(data.moduleTiers || {}));
+        api.get('/config').then(({ data }) => setModuleTiers(data.moduleTiers || {}));
     }, []);
 
     const isLocked = (moduleKey) => {
