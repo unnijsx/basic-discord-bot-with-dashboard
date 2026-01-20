@@ -38,7 +38,8 @@ const GlobalStyle = createGlobalStyle`
 
 const PageWrapper = styled.div`
   min-height: 100vh;
-  background-color: #0a0a0a;
+  // background-color: #0a0a0a; // Removing opaque background to show video
+  background-color: transparent;
   color: #fff;
   font-family: 'Inter', sans-serif;
   overflow: hidden;
@@ -51,11 +52,12 @@ const AuroraBackground = styled.div`
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle at 50% 50%, rgba(88, 101, 242, 0.15), transparent 50%),
-              radial-gradient(circle at 80% 20%, rgba(235, 69, 158, 0.1), transparent 40%);
-  animation: ${aurora} 60s linear infinite;
+  // background: radial-gradient(circle at 50% 50%, rgba(88, 101, 242, 0.15), transparent 50%),
+  //             radial-gradient(circle at 80% 20%, rgba(235, 69, 158, 0.1), transparent 40%);
+  // animation: ${aurora} 60s linear infinite;
   z-index: 0;
   pointer-events: none;
+  display: none; // Hide aurora to let video shine, or keep transparent
 `;
 
 const Navbar = styled.nav`
@@ -162,8 +164,9 @@ const CtaButton = styled(Button)`
   font-weight: 600;
   border-radius: 30px;
   border: none;
-  background: linear-gradient(135deg, #5865F2, #4752c4);
-  box-shadow: 0 4px 15px rgba(88, 101, 242, 0.4);
+  background: linear-gradient(135deg, #ffb7c5, #ff9eb5); /* Sakura Pink Gradient */
+  color: #2c2c2c !important; /* Dark text for contrast */
+  box-shadow: 0 4px 15px rgba(255, 183, 197, 0.4);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -171,8 +174,9 @@ const CtaButton = styled(Button)`
 
   &:hover {
     transform: scale(1.05);
-    box-shadow: 0 8px 25px rgba(88, 101, 242, 0.6);
-    background: linear-gradient(135deg, #4752c4, #5865F2);
+    box-shadow: 0 8px 25px rgba(255, 183, 197, 0.6);
+    background: linear-gradient(135deg, #ff9eb5, #ffb7c5);
+    color: #000 !important;
   }
 `;
 

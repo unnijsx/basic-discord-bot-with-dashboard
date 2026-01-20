@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Layout, Card, Switch, Statistic, Row, Col, Input, Button, Alert, message, List, Tag, Select, Table, Avatar, Tooltip, Space, Menu, Drawer } from 'antd';
 import {
     ThunderboltOutlined, WarningOutlined, DatabaseOutlined, GlobalOutlined, RobotOutlined,
-    UserOutlined, AppstoreOutlined, MenuOutlined
+    UserOutlined, AppstoreOutlined, MenuOutlined, BgColorsOutlined
 } from '@ant-design/icons';
 import axios from '../api/axios';
 import { useAuth } from '../context/AuthContext';
@@ -146,6 +146,33 @@ const SuperAdmin = () => {
         }
     };
 
+    // BRANDING CONFIG
+    const [brandingForm, setBrandingForm] = useState({
+        appName: 'Rheox',
+        appLogo: '',
+        primaryColor: '#ffb7c5',
+        backgroundType: 'sakura',
+        backgroundValue: ''
+    });
+
+    useEffect(() => {
+        if (config?.branding) {
+            setBrandingForm(config.branding);
+        }
+    }, [config]);
+
+    const handleBrandingSave = async () => {
+        try {
+            await axios.put('/admin/system-config', { branding: brandingForm });
+            message.success('Theme settings updated! Refresh to see changes.');
+            fetchData();
+            // Force reload to apply theme changes cleanly
+            setTimeout(() => window.location.reload(), 1000);
+        } catch (error) {
+            message.error('Failed to update theme');
+        }
+    };
+
     if (!user?.isSuperAdmin) {
         return <div style={{ padding: 50, textAlign: 'center' }}><h1>🚫 Restricted Area</h1></div>;
     }
@@ -155,6 +182,7 @@ const SuperAdmin = () => {
         { key: 'overview', icon: <ThunderboltOutlined />, label: 'Overview' },
         { key: 'users', icon: <UserOutlined />, label: 'User Management' },
         { key: 'modules', icon: <AppstoreOutlined />, label: 'Module Config' },
+        { key: 'theme', icon: <BgColorsOutlined />, label: 'Theme & Branding' },
     ];
 
     const renderContent = () => {
@@ -234,6 +262,83 @@ const SuperAdmin = () => {
                                 );
                             }}
                         />
+                    </Card>
+                );
+            case 'theme':
+                return (
+                    <Card title="🎨 Theme & Branding" bordered={false}>
+                        <Row gutter={[24, 24]}>
+                            <Col span={12}>
+                                <div style={{ marginBottom: 16 }}>
+                                    <label style={{ display: 'block', marginBottom: 8 }}>Application Name</label>
+                                    <Input
+                                        value={brandingForm.appName}
+                                        onChange={(e) => setBrandingForm({ ...brandingForm, appName: e.target.value })}
+                                    />
+                                </div>
+                                <div style={{ marginBottom: 16 }}>
+                                    <label style={{ display: 'block', marginBottom: 8 }}>Primary Color (Hex)</label>
+                                    <div style={{ display: 'flex', gap: 10 }}>
+                                        <Input
+                                            type="color"
+                                            value={brandingForm.primaryColor}
+                                            onChange={(e) => setBrandingForm({ ...brandingForm, primaryColor: e.target.value })}
+                                            style={{ width: 50, padding: 0, height: 32 }}
+                                        />
+                                        <Input
+                                            value={brandingForm.primaryColor}
+                                            onChange={(e) => setBrandingForm({ ...brandingForm, primaryColor: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+                                <div style={{ marginBottom: 16 }}>
+                                    <label style={{ display: 'block', marginBottom: 8 }}>Background Type</label>
+                                    <Select
+                                        value={brandingForm.backgroundType}
+                                        onChange={(val) => setBrandingForm({ ...brandingForm, backgroundType: val })}
+                                        style={{ width: '100%' }}
+                                    >
+                                        <Select.Option value="sakura">Sakura Animation (Default)</Select.Option>
+                                        <Select.Option value="video">Video URL</Select.Option>
+                                        <Select.Option value="image">Image URL</Select.Option>
+                                        <Select.Option value="gradient">CSS Gradient</Select.Option>
+                                    </Select>
+                                </div>
+                                {brandingForm.backgroundType !== 'sakura' && (
+                                    <div style={{ marginBottom: 16 }}>
+                                        <label style={{ display: 'block', marginBottom: 8 }}>
+                                            {brandingForm.backgroundType === 'gradient' ? 'CSS Gradient Value' : 'Media URL'}
+                                        </label>
+                                        <Input
+                                            placeholder={brandingForm.backgroundType === 'gradient' ? 'linear-gradient(...)' : 'https://...'}
+                                            value={brandingForm.backgroundValue}
+                                            onChange={(e) => setBrandingForm({ ...brandingForm, backgroundValue: e.target.value })}
+                                        />
+                                    </div>
+                                )}
+                            </Col>
+                            <Col span={12}>
+                                <div style={{ marginBottom: 16 }}>
+                                    <label style={{ display: 'block', marginBottom: 8 }}>App Logo URL</label>
+                                    <Input
+                                        value={brandingForm.appLogo}
+                                        onChange={(e) => setBrandingForm({ ...brandingForm, appLogo: e.target.value })}
+                                    />
+                                    {brandingForm.appLogo && (
+                                        <img src={brandingForm.appLogo} alt="Preview" style={{ marginTop: 10, maxHeight: 50 }} />
+                                    )}
+                                </div>
+                                <Alert
+                                    message="Theme Changes"
+                                    description="Updating the theme will refresh the page for you. All connected users will see the changes on their next reload."
+                                    type="info"
+                                    showIcon
+                                />
+                                <Button type="primary" size="large" onClick={handleBrandingSave} style={{ marginTop: 20, width: '100%' }}>
+                                    Save Theme Settings
+                                </Button>
+                            </Col>
+                        </Row>
                     </Card>
                 );
             default: // overview

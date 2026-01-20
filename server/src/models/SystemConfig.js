@@ -47,6 +47,16 @@ const SystemConfigSchema = new mongoose.Schema({
         status: { type: String, enum: ['online', 'idle', 'dnd', 'invisible'], default: 'online' },
         activityType: { type: String, enum: ['Playing', 'Watching', 'Listening', 'Competing'], default: 'Playing' },
         activityText: { type: String, default: 'Discord' }
+    },
+
+    // Global Branding & Theme
+    branding: {
+        appName: { type: String, default: 'Rheox' },
+        appLogo: { type: String, default: '/rheox_logo.png' },
+        primaryColor: { type: String, default: '#ffb7c5' }, // Default Sakura Pink
+        secondaryColor: { type: String, default: '#ff9eb5' },
+        backgroundType: { type: String, enum: ['video', 'image', 'gradient', 'sakura'], default: 'sakura' },
+        backgroundValue: { type: String, default: '' } // URL for image/video or CSS value for gradient
     }
 }, { timestamps: true });
 

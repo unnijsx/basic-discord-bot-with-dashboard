@@ -14,15 +14,18 @@ export const BrandingProvider = ({ children }) => {
     useEffect(() => {
         const fetchBranding = async () => {
             try {
-                const { data } = await api.get('/config/branding');
-                // Merge fetched data with initial branding, prioritizing fetched data
-                setBranding(prevBranding => ({
-                    ...prevBranding,
+                const { data } = await api.get('/config/branding'); // Fetch public branding
+                setBranding(prev => ({
+                    ...prev,
                     ...data
                 }));
-
-                // Update CSS variables for global usage if needed
-                document.documentElement.style.setProperty('--primary-color', data.themeColor);
+                // Update CSS variables
+                if (data.primaryColor) {
+                    document.documentElement.style.setProperty('--primary-color', data.primaryColor);
+                }
+                if (data.secondaryColor) {
+                    document.documentElement.style.setProperty('--secondary-color', data.secondaryColor);
+                }
             } catch (error) {
                 console.error('Failed to load branding:', error);
             } finally {

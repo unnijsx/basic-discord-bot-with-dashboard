@@ -1,8 +1,9 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { App as AntdApp, Spin, ConfigProvider, theme } from 'antd'; // Added ConfigProvider, theme
-import SakuraBackground from './components/Layout/SakuraBackground'; // Import Background
+import DynamicBackground from './components/Layout/DynamicBackground';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { useBranding } from './context/BrandingContext';
 import { SocketProvider, useSocket } from './context/SocketContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import GlobalAlert from './components/GlobalAlert';
@@ -77,12 +78,17 @@ const App = () => {
 };
 
 const AppContent = ({ maintenance, setMaintenance }) => {
+  const { primaryColor, loading } = useBranding();
+
+  // Wait for branding to load to avoid flashy theme changes
+  // if (loading) return <PageLoader />;
+
   return (
     <ConfigProvider
       theme={{
         algorithm: theme.darkAlgorithm,
         token: {
-          colorPrimary: '#ffb7c5', // Sakura Pink
+          colorPrimary: primaryColor || '#ffb7c5', // Use dynamic primary color
           colorBgBase: '#0a0a0a',
           colorBgContainer: '#121212',
           borderRadius: 8,
@@ -91,7 +97,7 @@ const AppContent = ({ maintenance, setMaintenance }) => {
       }}
     >
       <AntdApp>
-        <SakuraBackground />
+        <DynamicBackground />
         <SocketProvider>
           <RouterWrapper maintenance={maintenance} setMaintenance={setMaintenance} />
         </SocketProvider>
