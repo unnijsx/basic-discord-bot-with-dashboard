@@ -25,8 +25,20 @@ module.exports = {
             .setColor('#5865F2')
             .setThumbnail(interaction.client.user.displayAvatarURL())
             .setImage('https://media.discordapp.net/attachments/123000000000000000/123000000000000000/banner.png?width=1000') // Optional placeholder
-            .setFooter({ text: 'Rheox Bot • v2.0', iconURL: interaction.guild.iconURL() })
+            .setFooter({ text: `Rheox Bot • v2.0 • Dashboard: ${process.env.FRONTEND_URL || 'https://your-dashboard-url.com'}`, iconURL: interaction.guild.iconURL() })
             .setTimestamp();
+
+        const row = new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setLabel('Dashboard')
+                    .setStyle(ButtonStyle.Link)
+                    .setURL(process.env.FRONTEND_URL || 'https://basic-discord-bot-with-dashboard.vercel.app'),
+                new ButtonBuilder()
+                    .setLabel('Support')
+                    .setStyle(ButtonStyle.Link)
+                    .setURL(process.env.DISCORD_SUPPORT_SERVER || 'https://discord.gg/your-invite')
+            );
 
         const categories = [];
 
@@ -60,6 +72,6 @@ module.exports = {
         }
 
         // Just sending the embed for now. Can add a Select Menu later for detailed view if list gets too long.
-        await interaction.reply({ embeds: [embed] });
+        await interaction.reply({ embeds: [embed], components: [row] });
     },
 };

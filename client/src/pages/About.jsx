@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import PremiumNavbar from '../components/Layout/PremiumNavbar';
-import { Typography, Row, Col, Card, Button } from 'antd';
+import { Typography, Row, Col, Card, Button, Avatar, Spin, Tag } from 'antd';
 import styled from 'styled-components';
-import { RocketOutlined, HeartOutlined, TeamOutlined } from '@ant-design/icons';
+import { RocketOutlined, HeartOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import api from '../api/axios';
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph, Text } = Typography;
 
 const Container = styled.div`
     padding: 80px 50px;
@@ -24,19 +25,61 @@ const FeatureCard = styled(Card)`
     .ant-card-meta-description { color: #b9bbbe; }
 `;
 
+const TeamCard = styled.div`
+    background: #2b2d31;
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: transform 0.2s;
+    &:hover {
+        transform: translateY(-5px);
+        background: #313338;
+    }
+`;
+
 const About = () => {
     const navigate = useNavigate();
+    const [team, setTeam] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    const TEAM_IDS = [
+        { id: '562859302130286613', role: 'Lead Developer', color: '#5865F2' },
+        { id: '1024709731283128360', role: 'Manager', color: '#faa61a' },
+        { id: '752505790631510016', role: 'Manager', color: '#faa61a' }
+    ];
+
+    useEffect(() => {
+        const fetchTeam = async () => {
+            try {
+                const { data } = await api.post('/users/batch', { userIds: TEAM_IDS.map(m => m.id) });
+                // Merge fetched data with static role info
+                const merged = data.map(user => ({
+                    ...user,
+                    ...TEAM_IDS.find(t => t.id === user.id)
+                }));
+                // Sort to keep Developer first (simple way: rely on order or sort by role)
+                merged.sort((a, b) => a.id === '562859302130286613' ? -1 : 1);
+                setTeam(merged);
+            } catch (err) {
+                console.error("Failed to fetch team", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchTeam();
+    }, []);
 
     return (
         <Container>
             <PremiumNavbar />
             <Title style={{ color: '#fff', fontSize: '3rem' }}>About Rheox</Title>
             <Paragraph style={{ color: '#b9bbbe', fontSize: '1.2rem', maxWidth: 800, margin: '0 auto 60px auto' }}>
-                Rheox is an advanced, all-in-one Discord bot designed to supercharge your community.
-                From robust moderation to high-quality music and deep analytics, we provide the tools you need to grow on Discord.
+                Rheox is a comprehensive development community and bot platform.
+                Our mission is to empower communities with advanced tools, seamless moderation, and engaging features.
             </Paragraph>
 
-            <Row gutter={[32, 32]} justify="center">
+            <Row gutter={[32, 32]} justify="center" style={{ marginBottom: 80 }}>
                 <Col xs={24} md={8}>
                     <FeatureCard>
                         <RocketOutlined style={{ fontSize: 40, color: '#5865F2', marginBottom: 20 }} />
@@ -56,6 +99,37 @@ const About = () => {
                     </FeatureCard>
                 </Col>
             </Row>
+
+            <Title level={2} style={{ color: '#fff', marginBottom: 40 }}>Meet the Team</Title>
+
+            {loading ? (
+                <Spin size="large" />
+            ) : (
+                <Row gutter={[24, 24]} justify="center">
+                    {team.map(member => (
+                        <Col key={member.id} xs={24} sm={12} md={8} lg={6}>
+                            <TeamCard>
+                                <Avatar
+                                    size={100}
+                                    src={member.avatar}
+                                    icon={<UserOutlined />}
+                                    style={{ marginBottom: 16, border: `3px solid ${member.color}` }}
+                                />
+                                <Title level={4} style={{ color: '#fff', margin: 0 }}>
+                                    {member.globalName || member.username}
+                                </Title>
+                                <Text type="secondary" style={{ display: 'block', marginBottom: 12 }}>
+                                    @{member.username}
+                                    {member.discriminator !== '0' && `#${member.discriminator}`}
+                                </Text>
+                                <Tag color={member.color} style={{ fontSize: 14, padding: '4px 12px' }}>
+                                    {member.role?.toUpperCase()}
+                                </Tag>
+                            </TeamCard>
+                        </Col>
+                    ))}
+                </Row>
+            )}
 
             <div style={{ marginTop: 80 }}>
                 <Title level={3} style={{ color: '#fff' }}>Join the Revolution</Title>

@@ -21,6 +21,34 @@ const AuditLog = require('../models/AuditLog');
 const TicketPanel = require('../models/TicketPanel');
 const Ticket = require('../models/Ticket');
 
+// Public: Fetch multiple users (for Team Page)
+router.post('/users/batch', async (req, res) => {
+    try {
+        const { userIds } = req.body; // Expect array of strings
+        if (!userIds || !Array.isArray(userIds)) return res.status(400).json({ error: 'Invalid userIds array' });
+
+        const users = await Promise.all(userIds.map(async (id) => {
+            try {
+                const user = await req.botClient.users.fetch(id);
+                return {
+                    id: user.id,
+                    username: user.username,
+                    globalName: user.globalName,
+                    discriminator: user.discriminator,
+                    avatar: user.displayAvatarURL({ dynamic: true, size: 256 }),
+                    banner: user.bannerURL({ dynamic: true, size: 512 })
+                };
+            } catch (e) {
+                return null;
+            }
+        }));
+
+        res.json(users.filter(u => u !== null));
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Get Guild Basic Info
 router.get('/guilds/:guildId', async (req, res) => {
     try {
