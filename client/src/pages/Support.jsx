@@ -1,5 +1,6 @@
 import React from 'react';
 import PremiumNavbar from '../components/Layout/PremiumNavbar';
+import { getSecureSupportLink } from '../utils/secureLinks';
 import { Typography, Collapse, Button, Card } from 'antd';
 import styled from 'styled-components';
 import { DiscordOutlined, QuestionCircleOutlined } from '@ant-design/icons';
@@ -56,7 +57,7 @@ const Support = () => {
                     size="large"
                     icon={<DiscordOutlined />}
                     style={{ color: '#5865F2', fontWeight: 'bold' }}
-                    onClick={() => window.open('https://discord.gg/your-support-server', '_blank')}
+                    onClick={() => window.open(getSecureSupportLink(), '_blank')}
                 >
                     Join Discord
                 </Button>
@@ -73,7 +74,7 @@ const Support = () => {
                     <p>Head to your server dashboard, select the "Moderation" module, and toggle on the features you need in the "Auto-Mod" tab.</p>
                 </Panel>
             </StyledCollapse>
-        </Container>
+        </Container >
     );
 };
 

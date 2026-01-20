@@ -34,6 +34,13 @@ const Features = lazy(() => import('./pages/Features'));
 const Leaderboard = lazy(() => import('./pages/public/Leaderboard'));
 const MainLayout = lazy(() => import('./components/Layout/MainLayout'));
 
+const PublicLayout = ({ children }) => (
+  <>
+    {children}
+    <Footer />
+  </>
+);
+
 // Loading Fallback
 const PageLoader = () => (
   <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#000' }}>
@@ -109,12 +116,12 @@ const RouterWrapper = ({ maintenance, setMaintenance }) => {
       <GlobalAlert alertData={maintenance?.currentAlert} />
       <Suspense fallback={<PageLoader />}>
         <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/features" element={<Features />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/support" element={<Support />} />
-          <Route path="/leaderboard/:guildId" element={<Leaderboard />} />
+          <Route path="/" element={<PublicLayout><LandingPage /></PublicLayout>} />
+          <Route path="/features" element={<PublicLayout><Features /></PublicLayout>} />
+          <Route path="/login" element={<PublicLayout><Login /></PublicLayout>} />
+          <Route path="/about" element={<PublicLayout><About /></PublicLayout>} />
+          <Route path="/support" element={<PublicLayout><Support /></PublicLayout>} />
+          <Route path="/leaderboard/:guildId" element={<PublicLayout><Leaderboard /></PublicLayout>} />
 
           {/* Protected Routes */}
           <Route path="/dashboard" element={<ProtectedRoute><ServerSelector /></ProtectedRoute>} />

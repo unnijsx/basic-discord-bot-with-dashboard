@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Layout, Menu, Avatar, Dropdown, theme, Drawer, Button, Grid } from 'antd';
+import Footer from './Footer';
 import {
     DashboardOutlined,
     SettingOutlined,
@@ -220,6 +221,7 @@ const MainLayout = () => {
                 </StyledHeader>
                 <Content style={{ margin: '24px 16px', padding: 24, minHeight: 280, overflow: 'initial' }}>
                     <Outlet />
+                    <Footer />
                 </Content>
             </Layout>
         </Layout>
