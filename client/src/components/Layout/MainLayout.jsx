@@ -26,6 +26,7 @@ import styled from 'styled-components';
 import { useBranding } from '../../context/BrandingContext';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
+import LanguageSwitcher from '../LanguageSwitcher';
 
 const { Header, Sider, Content } = Layout;
 
@@ -220,6 +221,9 @@ const MainLayout = () => {
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ marginRight: 16 }}>
+                            <LanguageSwitcher />
+                        </div>
                         {user && (
                             <div style={{ textAlign: 'right', marginRight: 8, display: isMobile ? 'none' : 'block' }}>
                                 <div style={{ color: '#fff', fontWeight: 600, fontSize: 14 }}>{user.globalName || user.username}</div>

@@ -119,8 +119,8 @@ const TicketSystem = () => {
     const fetchResources = async () => {
         try {
             const [channelsRes, rolesRes] = await Promise.all([
-                api.get(`/modules/${guildId}/channels`),
-                api.get(`/modules/${guildId}/roles`)
+                api.get(`/guilds/${guildId}/channels`),
+                api.get(`/guilds/${guildId}/roles`)
             ]);
             setChannels(channelsRes.data);
             setRoles(rolesRes.data);

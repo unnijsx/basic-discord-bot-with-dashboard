@@ -182,9 +182,10 @@ const Settings = () => {
                                             dropdownStyle={{ background: '#2b2d31' }}
                                         >
                                             <Option value="en">English (US)</Option>
-                                            <Option value="es">Español</Option>
-                                            <Option value="fr">Français</Option>
-                                            <Option value="de">Deutsch</Option>
+                                            <Option value="ml">Malayalam (മലയാളം)</Option>
+                                            <Option value="hi">Hindi (हिंदी)</Option>
+                                            <Option value="de">German (Deutsch)</Option>
+                                            <Option value="ru">Russian (Русский)</Option>
                                         </Select>
                                     </Form.Item>
                                 </Col>
