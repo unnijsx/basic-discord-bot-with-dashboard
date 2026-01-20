@@ -37,7 +37,15 @@ module.exports = {
                 new ButtonBuilder()
                     .setLabel('Support')
                     .setStyle(ButtonStyle.Link)
-                    .setURL(process.env.DISCORD_SUPPORT_SERVER || 'https://discord.gg/your-invite')
+                    .setURL(process.env.DISCORD_SUPPORT_SERVER || 'https://discord.gg/your-invite'),
+                new ButtonBuilder()
+                    .setLabel('Privacy')
+                    .setStyle(ButtonStyle.Link)
+                    .setURL(`${process.env.FRONTEND_URL || 'https://basic-discord-bot-with-dashboard.vercel.app'}/privacy`),
+                new ButtonBuilder()
+                    .setLabel('Terms')
+                    .setStyle(ButtonStyle.Link)
+                    .setURL(`${process.env.FRONTEND_URL || 'https://basic-discord-bot-with-dashboard.vercel.app'}/terms`)
             );
 
         const categories = [];

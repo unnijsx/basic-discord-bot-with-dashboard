@@ -45,7 +45,7 @@ const About = () => {
 
     const TEAM_IDS = [
         { id: '562859302130286613', role: 'Lead Developer', color: '#5865F2' },
-        { id: '1024709731283128360', role: 'Manager', color: '#faa61a' },
+        { id: '718100913029382146', role: 'Manager', color: '#faa61a' },
         { id: '752505790631510016', role: 'Manager', color: '#faa61a' }
     ];
 
