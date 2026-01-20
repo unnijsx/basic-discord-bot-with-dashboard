@@ -140,11 +140,71 @@ module.exports = {
     },
 };
 
-const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, EmbedBuilder, ChannelType, PermissionFlagsBits, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, EmbedBuilder, ChannelType, PermissionFlagsBits, ButtonBuilder, ButtonStyle, AttachmentBuilder } = require('discord.js');
 const Form = require('../../models/Form');
 const TicketPanel = require('../../models/TicketPanel');
 const Ticket = require('../../models/Ticket');
+const Suggestion = require('../../models/Suggestion');
 const { logAction } = require('../../utils/auditLogger');
+
+async function handleSuggestionVote(interaction) {
+    try {
+        const { customId, message, user } = interaction;
+        const suggestion = await Suggestion.findOne({ messageId: message.id });
+
+        if (!suggestion) {
+            return interaction.reply({ content: '❌ Suggestion data not found.', ephemeral: true });
+        }
+
+        const userId = user.id;
+        let action = '';
+
+        if (customId === 'suggest_up') {
+            if (suggestion.upvotes.includes(userId)) {
+                suggestion.upvotes = suggestion.upvotes.filter(id => id !== userId);
+                action = 'Removed upvote';
+            } else {
+                suggestion.upvotes.push(userId);
+                suggestion.downvotes = suggestion.downvotes.filter(id => id !== userId); // Remove downvote if switching
+                action = 'Upvoted';
+            }
+        } else if (customId === 'suggest_down') {
+            if (suggestion.downvotes.includes(userId)) {
+                suggestion.downvotes = suggestion.downvotes.filter(id => id !== userId);
+                action = 'Removed downvote';
+            } else {
+                suggestion.downvotes.push(userId);
+                suggestion.upvotes = suggestion.upvotes.filter(id => id !== userId); // Remove upvote if switching
+                action = 'Downvoted';
+            }
+        }
+
+        await suggestion.save();
+
+        // Update Embed
+        const embed = EmbedBuilder.from(message.embeds[0]);
+        const upCount = suggestion.upvotes.length;
+        const downCount = suggestion.downvotes.length;
+
+        const fields = embed.data.fields || [];
+        const voteFieldIndex = fields.findIndex(f => f.name === 'Votes');
+
+        if (voteFieldIndex !== -1) {
+            fields[voteFieldIndex].value = `⬆️ ${upCount} | ⬇️ ${downCount}`;
+        } else {
+            fields.push({ name: 'Votes', value: `⬆️ ${upCount} | ⬇️ ${downCount}`, inline: true });
+        }
+
+        embed.setFields(fields);
+        await message.edit({ embeds: [embed] });
+
+        await interaction.reply({ content: `✅ ${action}`, ephemeral: true });
+
+    } catch (err) {
+        console.error('Suggestion Vote Error:', err);
+        if (!interaction.replied) interaction.reply({ content: 'Error processing vote.', ephemeral: true });
+    }
+}
 
 async function handleTicketCreate(interaction) {
     try {

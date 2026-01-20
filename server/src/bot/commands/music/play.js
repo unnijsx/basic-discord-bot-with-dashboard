@@ -134,7 +134,7 @@ module.exports = {
             }
 
             // --- Buttons & Embed ---
-            const { ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
+            // const { ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js'); // Already imported at top
 
             const playPauseBtn = new ButtonBuilder().setCustomId('music_pause').setEmoji('⏯️').setStyle(ButtonStyle.Secondary);
             const skipBtn = new ButtonBuilder().setCustomId('music_skip').setEmoji('⏭️').setStyle(ButtonStyle.Secondary);
