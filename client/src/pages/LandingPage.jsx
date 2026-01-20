@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Button, Typography, Space, Row, Col, Card, Avatar } from 'antd';
-import { RocketOutlined, BarChartOutlined, SafetyCertificateOutlined, CustomerServiceOutlined, DiscordOutlined, RightOutlined } from '@ant-design/icons';
+import { RocketOutlined, BarChartOutlined, SafetyCertificateOutlined, CustomerServiceOutlined, DiscordOutlined, RightOutlined, InstagramOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import styled, { keyframes, createGlobalStyle } from 'styled-components';
 import { useAuth } from '../context/AuthContext';
@@ -182,6 +182,10 @@ const LandingPage = () => {
   const { appName, appLogo } = useBranding();
 
   useEffect(() => {
+    document.title = "Rheox Development";
+  }, []);
+
+  useEffect(() => {
     if (user) {
       navigate('/dashboard');
     }
@@ -257,10 +261,10 @@ const LandingPage = () => {
             </span>
           </div>
           <Title style={{ fontSize: 'clamp(2.5rem, 5vw, 5rem)', margin: '20px 0', color: '#fff', lineHeight: 1.1, padding: '0 10px' }}>
-            The Only Bot You Need For <GradientText>Growth</GradientText>
+            Rheox <GradientText>Development</GradientText>
           </Title>
           <Paragraph style={{ fontSize: 'clamp(1rem, 1.5vw, 1.25rem)', color: '#b9bbbe', margin: '0 auto 40px auto', maxWidth: 600, lineHeight: 1.6, padding: '0 20px' }}>
-            Manage your diverse communities with a modular, highly customizable dashboard. Moderation, Music, Leveling, and more.
+            Elevate your Discord server with advanced automation, crystal-clear music, and powerful moderation tools. Join the revolution today.
           </Paragraph>
           <div style={{ display: 'flex', justifyContent: 'center', gap: 20, flexWrap: 'wrap' }}>
             <CtaButton type="primary" size="large" onClick={handleCta}>
@@ -299,6 +303,23 @@ const LandingPage = () => {
           ))}
         </Row>
       </FeatureGrid>
+
+      <div style={{ padding: '60px 20px', background: 'rgba(255, 255, 255, 0.02)' }}>
+        <Title level={2} style={{ textAlign: 'center', color: '#fff', marginBottom: 40 }}>
+          Join Our Community
+        </Title>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '30px', flexWrap: 'wrap' }}>
+          <a href="https://discord.gg/gyQh6KaSbp" target="_blank" rel="noopener noreferrer">
+            <Button size="large" shape="circle" icon={<DiscordOutlined />} style={{ width: 60, height: 60, fontSize: 24, background: '#5865F2', border: 'none', color: '#fff' }} />
+          </a>
+          <a href="https://instagram.com/u/rheox_" target="_blank" rel="noopener noreferrer">
+            <Button size="large" shape="circle" icon={<InstagramOutlined />} style={{ width: 60, height: 60, fontSize: 24, background: 'linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%)', border: 'none', color: '#fff' }} />
+          </a>
+        </div>
+        <Paragraph style={{ textAlign: 'center', color: '#888', marginTop: 20 }}>
+          Stay updated with the latest features and announcements.
+        </Paragraph>
+      </div>
 
       <div style={{ padding: '80px 20px', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', background: '#050505' }}>
         <Title level={3} style={{ color: '#fff' }}>Ready to transform your server?</Title>

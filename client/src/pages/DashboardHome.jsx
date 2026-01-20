@@ -27,6 +27,7 @@ const DashboardHome = () => {
     };
 
     useEffect(() => {
+        document.title = "RHX | DASHBOARD";
         fetchGuildData();
     }, [guildId]);
 

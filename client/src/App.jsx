@@ -1,37 +1,45 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { App as AntdApp } from 'antd';
-import LandingPage from './pages/LandingPage';
-import About from './pages/About';
-import Support from './pages/Support';
-import Login from './pages/Login';
-import MainLayout from './components/Layout/MainLayout';
-import DashboardHome from './pages/DashboardHome';
-import ServerSelector from './pages/ServerSelector';
-import Moderation from './pages/modules/Moderation';
-import Leveling from './pages/modules/Leveling';
-import Music from './pages/modules/Music';
-import Logging from './pages/modules/Logging';
-import EmbedBuilder from './pages/modules/EmbedBuilder';
-import ServerManagement from './pages/modules/ServerManagement';
-import FormBuilder from './pages/modules/FormBuilder';
-import ScheduledMessages from './pages/modules/ScheduledMessages';
-import ServerAnalytics from './pages/ServerAnalytics';
-import AuditLogs from './pages/modules/AuditLogs';
-import DataPrivacy from './pages/DataPrivacy';
-import SuperAdmin from './pages/SuperAdmin';
+import { App as AntdApp, Spin } from 'antd';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SocketProvider, useSocket } from './context/SocketContext';
-import Settings from './pages/Settings';
 import ProtectedRoute from './components/ProtectedRoute';
 import GlobalAlert from './components/GlobalAlert';
-import TicketSystem from './pages/modules/TicketSystem';
-import TicketHistory from './pages/modules/TicketHistory';
-import Maintenance from './pages/Maintenance';
 import api from './api/axios';
 
-import Features from './pages/Features';
-import Leaderboard from './pages/public/Leaderboard';
+// Lazy Load Pages
+const LandingPage = lazy(() => import('./pages/LandingPage'));
+const About = lazy(() => import('./pages/About'));
+const Support = lazy(() => import('./pages/Support'));
+const Login = lazy(() => import('./pages/Login'));
+const DashboardHome = lazy(() => import('./pages/DashboardHome'));
+const ServerSelector = lazy(() => import('./pages/ServerSelector'));
+const Moderation = lazy(() => import('./pages/modules/Moderation'));
+const Leveling = lazy(() => import('./pages/modules/Leveling'));
+const Music = lazy(() => import('./pages/modules/Music'));
+const Logging = lazy(() => import('./pages/modules/Logging'));
+const EmbedBuilder = lazy(() => import('./pages/modules/EmbedBuilder'));
+const ServerManagement = lazy(() => import('./pages/modules/ServerManagement'));
+const FormBuilder = lazy(() => import('./pages/modules/FormBuilder'));
+const ScheduledMessages = lazy(() => import('./pages/modules/ScheduledMessages'));
+const ServerAnalytics = lazy(() => import('./pages/ServerAnalytics'));
+const AuditLogs = lazy(() => import('./pages/modules/AuditLogs'));
+const DataPrivacy = lazy(() => import('./pages/DataPrivacy'));
+const SuperAdmin = lazy(() => import('./pages/SuperAdmin'));
+const Settings = lazy(() => import('./pages/Settings'));
+const TicketSystem = lazy(() => import('./pages/modules/TicketSystem'));
+const TicketHistory = lazy(() => import('./pages/modules/TicketHistory'));
+const Maintenance = lazy(() => import('./pages/Maintenance'));
+const Features = lazy(() => import('./pages/Features'));
+const Leaderboard = lazy(() => import('./pages/public/Leaderboard'));
+const MainLayout = lazy(() => import('./components/Layout/MainLayout'));
+
+// Loading Fallback
+const PageLoader = () => (
+  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#000' }}>
+    <Spin size="large" />
+  </div>
+);
 
 const App = () => {
   const [maintenance, setMaintenance] = React.useState(null);
@@ -58,12 +66,6 @@ const App = () => {
 };
 
 const AppContent = ({ maintenance, setMaintenance }) => {
-  const { user, loading } = useAuth(); // Access context directly since we are inside Provider
-  // Need to import AuthContext to use useContext, or export useAuth outside
-  // But getting context from useAuth inside the same file where AuthProvider is rendered is tricky if App is parent.
-  // Correct pattern: Move AuthProvider separate or use child component.
-  // Let's refactor App structure slightly
-
   return (
     <AntdApp>
       <SocketProvider>
@@ -86,7 +88,7 @@ const RouterWrapper = ({ maintenance, setMaintenance }) => {
     return () => socket.off('systemAlert');
   }, [socket, setMaintenance]);
 
-  if (loading) return null;
+  if (loading) return <PageLoader />;
 
   // Maintenance Logic
   if (maintenance?.maintenanceMode) {
@@ -94,51 +96,57 @@ const RouterWrapper = ({ maintenance, setMaintenance }) => {
     const isLoginPage = window.location.pathname === '/login' || window.location.pathname.startsWith('/api/auth');
 
     if (!isSuperAdmin && !isLoginPage) {
-      return <Maintenance />;
+      return (
+        <Suspense fallback={<PageLoader />}>
+          <Maintenance />
+        </Suspense>
+      );
     }
   }
 
   return (
     <Router>
       <GlobalAlert alertData={maintenance?.currentAlert} />
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/features" element={<Features />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/support" element={<Support />} />
-        <Route path="/leaderboard/:guildId" element={<Leaderboard />} />
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/features" element={<Features />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/support" element={<Support />} />
+          <Route path="/leaderboard/:guildId" element={<Leaderboard />} />
 
-        {/* Protected Routes */}
-        <Route path="/dashboard" element={<ProtectedRoute><ServerSelector /></ProtectedRoute>} />
-        <Route path="/super-admin" element={<ProtectedRoute><SuperAdmin /></ProtectedRoute>} />
+          {/* Protected Routes */}
+          <Route path="/dashboard" element={<ProtectedRoute><ServerSelector /></ProtectedRoute>} />
+          <Route path="/super-admin" element={<ProtectedRoute><SuperAdmin /></ProtectedRoute>} />
 
-        <Route
-          path="/dashboard/:guildId"
-          element={
-            <ProtectedRoute>
-              <MainLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<DashboardHome />} />
-          <Route path="analytics" element={<ServerAnalytics />} />
-          <Route path="logs" element={<AuditLogs />} />
-          <Route path="privacy" element={<DataPrivacy />} />
-          <Route path="moderation" element={<Moderation />} />
-          <Route path="leveling" element={<Leveling />} />
-          <Route path="music" element={<Music />} />
-          <Route path="tickets" element={<TicketSystem />} />
-          <Route path="tickets/history" element={<TicketHistory />} />
-          <Route path="moderation/*" element={<Moderation />} />
-          <Route path="logging" element={<Logging />} />
-          <Route path="messages" element={<EmbedBuilder />} />
-          <Route path="management" element={<ServerManagement />} />
-          <Route path="forms" element={<FormBuilder />} />
-          <Route path="scheduled-messages" element={<ScheduledMessages />} />
-          <Route path="settings" element={<Settings />} />
-        </Route>
-      </Routes>
+          <Route
+            path="/dashboard/:guildId"
+            element={
+              <ProtectedRoute>
+                <MainLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<DashboardHome />} />
+            <Route path="analytics" element={<ServerAnalytics />} />
+            <Route path="logs" element={<AuditLogs />} />
+            <Route path="privacy" element={<DataPrivacy />} />
+            <Route path="moderation" element={<Moderation />} />
+            <Route path="leveling" element={<Leveling />} />
+            <Route path="music" element={<Music />} />
+            <Route path="tickets" element={<TicketSystem />} />
+            <Route path="tickets/history" element={<TicketHistory />} />
+            <Route path="moderation/*" element={<Moderation />} />
+            <Route path="logging" element={<Logging />} />
+            <Route path="messages" element={<EmbedBuilder />} />
+            <Route path="management" element={<ServerManagement />} />
+            <Route path="forms" element={<FormBuilder />} />
+            <Route path="scheduled-messages" element={<ScheduledMessages />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
+        </Routes>
+      </Suspense>
     </Router>
   );
 };

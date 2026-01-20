@@ -24,6 +24,7 @@ const SuperAdmin = () => {
     const [searchingUsers, setSearchingUsers] = useState(false);
 
     useEffect(() => {
+        document.title = "RHX | ADMIN";
         if (!user?.isSuperAdmin) return;
         fetchData();
         const interval = setInterval(fetchStats, 5000); // Poll stats every 5s
