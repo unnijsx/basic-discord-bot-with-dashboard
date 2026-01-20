@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Typography, Form, Input, Switch, Button, notification, Divider, Select, Row, Col, Spin, Alert } from 'antd';
+import { Card, Typography, Form, Input, Switch, Button, notification, Divider, Select, Row, Col, Spin, Alert, Tooltip, Space, Tag } from 'antd';
 import { SaveOutlined, SettingOutlined, AppstoreOutlined, GlobalOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
@@ -35,6 +36,33 @@ const Settings = () => {
     useEffect(() => {
         fetchSettings();
     }, [guildId]);
+
+    const [moduleTiers, setModuleTiers] = useState({});
+    const { user } = useAuth(); // Needed for isPremium check
+
+    useEffect(() => {
+        fetchSettings();
+        fetchModuleTiers();
+    }, [guildId]);
+
+    const fetchModuleTiers = async () => {
+        try {
+            // In MainLayout we used api.get('/api/config') but here we imported axios directly from 'axios'? 
+            // Let's check imports. It imports axios from 'axios'. 
+            // We should consistency use our api instance or Axios with baseURL.
+            // Line 6 says `import axios from 'axios';` but line 43 uses `import.meta.env.VITE_API_URL`.
+            // I will use the same pattern.
+            const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/config`);
+            setModuleTiers(data.moduleTiers || {});
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const isLocked = (key) => {
+        const tier = moduleTiers[key];
+        return tier === 'premium' && !user?.isPremium;
+    };
 
     const fetchSettings = async () => {
         try {
@@ -165,50 +193,30 @@ const Settings = () => {
 
                         <StyledCard title="Module Management" bordered={false} style={{ marginTop: 24 }}>
                             <Paragraph style={{ color: '#949ba4', marginBottom: 24 }}>
-                                Enable or disable specific functionality to keep your dashboard clean and the bot efficient.
+                                Enable or disable specific functionality. <span style={{ color: '#faa61a' }}>Premium modules are locked for free users.</span>
                             </Paragraph>
 
                             <Row gutter={[16, 16]}>
-                                <Col span={12}>
-                                    <Form.Item name={['modules', 'moderation']} valuePropName="checked">
-                                        <Card size="small" style={{ background: '#2b2d31', borderColor: '#1e1f22' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <span style={{ color: '#fff', fontWeight: 600 }}>Moderation</span>
-                                                <Switch />
-                                            </div>
-                                        </Card>
-                                    </Form.Item>
-                                </Col>
-                                <Col span={12}>
-                                    <Form.Item name={['modules', 'music']} valuePropName="checked">
-                                        <Card size="small" style={{ background: '#2b2d31', borderColor: '#1e1f22' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <span style={{ color: '#fff', fontWeight: 600 }}>Music</span>
-                                                <Switch />
-                                            </div>
-                                        </Card>
-                                    </Form.Item>
-                                </Col>
-                                <Col span={12}>
-                                    <Form.Item name={['modules', 'leveling']} valuePropName="checked">
-                                        <Card size="small" style={{ background: '#2b2d31', borderColor: '#1e1f22' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <span style={{ color: '#fff', fontWeight: 600 }}>Leveling</span>
-                                                <Switch />
-                                            </div>
-                                        </Card>
-                                    </Form.Item>
-                                </Col>
-                                <Col span={12}>
-                                    <Form.Item name={['modules', 'logging']} valuePropName="checked">
-                                        <Card size="small" style={{ background: '#2b2d31', borderColor: '#1e1f22' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <span style={{ color: '#fff', fontWeight: 600 }}>Logging</span>
-                                                <Switch />
-                                            </div>
-                                        </Card>
-                                    </Form.Item>
-                                </Col>
+                                {['moderation', 'music', 'leveling', 'logging'].map(key => {
+                                    const locked = isLocked(key);
+                                    return (
+                                        <Col span={12} key={key}>
+                                            <Form.Item name={['modules', key]} valuePropName="checked">
+                                                <Card size="small" style={{ background: '#2b2d31', borderColor: '#1e1f22', opacity: locked ? 0.6 : 1 }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                        <Space>
+                                                            <span style={{ color: '#fff', fontWeight: 600, textTransform: 'capitalize' }}>{key}</span>
+                                                            {locked && <Tag color="gold">PREMIUM</Tag>}
+                                                        </Space>
+                                                        <Tooltip title={locked ? "Upgrade to Premium to enable" : ""}>
+                                                            <Switch disabled={locked} />
+                                                        </Tooltip>
+                                                    </div>
+                                                </Card>
+                                            </Form.Item>
+                                        </Col>
+                                    );
+                                })}
                             </Row>
                         </StyledCard>
                     </Col>

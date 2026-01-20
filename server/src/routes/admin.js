@@ -143,4 +143,42 @@ router.delete('/broadcast', async (req, res) => {
     }
 });
 
+const User = require('../models/User');
+
+// USER MANAGEMENT
+// GET /admin/users?search=query
+router.get('/users', async (req, res) => {
+    try {
+        const { search } = req.query;
+        let query = {};
+        if (search) {
+            query = {
+                $or: [
+                    { discordId: { $regex: search, $options: 'i' } },
+                    { username: { $regex: search, $options: 'i' } }
+                ]
+            };
+        }
+        const users = await User.find(query).limit(20).select('discordId username discriminator avatar isPremium');
+        res.json(users);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// TOGGLE PREMIUM
+router.put('/users/:userId/premium', async (req, res) => {
+    try {
+        const { isPremium } = req.body;
+        const user = await User.findOne({ discordId: req.params.userId });
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        user.isPremium = isPremium;
+        await user.save();
+        res.json(user);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;

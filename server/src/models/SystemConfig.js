@@ -23,6 +23,18 @@ const SystemConfigSchema = new mongoose.Schema({
         economy: { type: Boolean, default: true }
     },
 
+    // Module Tiers (Free vs Premium)
+    moduleTiers: {
+        music: { type: String, enum: ['free', 'premium'], default: 'premium' },
+        embedBuilder: { type: String, enum: ['free', 'premium'], default: 'premium' },
+        forms: { type: String, enum: ['free', 'premium'], default: 'premium' },
+        tickets: { type: String, enum: ['free', 'premium'], default: 'free' },
+        moderation: { type: String, enum: ['free', 'premium'], default: 'free' },
+        leveling: { type: String, enum: ['free', 'premium'], default: 'free' },
+        logging: { type: String, enum: ['free', 'premium'], default: 'free' },
+        analytics: { type: String, enum: ['free', 'premium'], default: 'free' }
+    },
+
     // System Alerts (Broadcasts)
     currentAlert: {
         message: { type: String },

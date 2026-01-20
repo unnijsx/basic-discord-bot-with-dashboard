@@ -20,6 +20,7 @@ import { Outlet, useNavigate, useLocation, useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { useBranding } from '../../context/BrandingContext';
 import { useAuth } from '../../context/AuthContext';
+import api from '../../api/axios';
 
 const { Header, Sider, Content } = Layout;
 
@@ -75,27 +76,38 @@ const MainLayout = () => {
     // screens.md is true if width >= 768px.
     const isMobile = !screens.md;
 
+    const [moduleTiers, setModuleTiers] = useState({});
+
+    useEffect(() => {
+        api.get('/api/config').then(({ data }) => setModuleTiers(data.moduleTiers || {}));
+    }, []);
+
+    const isLocked = (moduleKey) => {
+        const tier = moduleTiers[moduleKey];
+        if (tier === 'premium' && !user?.isPremium) return true;
+        return false;
+    };
+
     const items = [
         {
             key: `/dashboard/${guildId}`,
             icon: <DashboardOutlined />,
             label: 'Overview',
         },
-
         {
             key: 'modules',
             label: 'Modules',
             type: 'group',
             children: [
-                { key: `/dashboard/${guildId}/moderation`, icon: <SafetyCertificateOutlined />, label: 'Moderation' },
-                { key: `/dashboard/${guildId}/music`, icon: <CustomerServiceOutlined />, label: 'Music' },
-                { key: `/dashboard/${guildId}/tickets`, icon: <DeploymentUnitOutlined />, label: 'Ticket System' },
-                { key: `/dashboard/${guildId}/analytics`, icon: <BarChartOutlined />, label: 'Analytics' },
-                { key: `/dashboard/${guildId}/logs`, icon: <FileTextOutlined />, label: 'Audit Logs' },
+                { key: `/dashboard/${guildId}/moderation`, icon: <SafetyCertificateOutlined />, label: 'Moderation', disabled: isLocked('moderation') },
+                { key: `/dashboard/${guildId}/music`, icon: <CustomerServiceOutlined />, label: isLocked('music') ? <span>Music 🔒</span> : 'Music', disabled: isLocked('music') },
+                { key: `/dashboard/${guildId}/tickets`, icon: <DeploymentUnitOutlined />, label: 'Ticket System', disabled: isLocked('tickets') },
+                { key: `/dashboard/${guildId}/analytics`, icon: <BarChartOutlined />, label: 'Analytics', disabled: isLocked('analytics') },
+                { key: `/dashboard/${guildId}/logs`, icon: <FileTextOutlined />, label: 'Audit Logs', disabled: isLocked('logging') },
                 { type: 'divider' },
-                { key: `/dashboard/${guildId}/messages`, icon: <MessageOutlined />, label: 'Embed Builder' },
-                { key: `/dashboard/${guildId}/forms`, icon: <FormOutlined />, label: 'Forms' },
-                { key: `/dashboard/${guildId}/scheduled-messages`, icon: <CalendarOutlined />, label: 'Scheduled Msgs' },
+                { key: `/dashboard/${guildId}/messages`, icon: <MessageOutlined />, label: isLocked('embedBuilder') ? <span>Embed Builder 🔒</span> : 'Embed Builder', disabled: isLocked('embedBuilder') },
+                { key: `/dashboard/${guildId}/forms`, icon: <FormOutlined />, label: isLocked('forms') ? <span>Forms 🔒</span> : 'Forms', disabled: isLocked('forms') },
+                { key: `/dashboard/${guildId}/scheduled-messages`, icon: <CalendarOutlined />, label: 'Scheduled Msgs', disabled: isLocked('scheduledMessages') },
                 { key: `/dashboard/${guildId}/management`, icon: <ToolOutlined />, label: 'Server Management' },
 
             ]
