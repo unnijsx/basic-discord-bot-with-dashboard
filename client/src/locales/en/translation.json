@@ -16,5 +16,44 @@
         "content": "Please note that these translations are contributed by the community and may contain inaccuracies or issues. Proceed with caution.",
         "confirm": "I Understand, Switch Language",
         "cancel": "Cancel"
+    },
+    "sidebar": {
+        "overview": "Overview",
+        "modules": "Modules",
+        "moderation": "Moderation",
+        "music": "Music",
+        "tickets": "Ticket System",
+        "analytics": "Analytics",
+        "logs": "Audit Logs",
+        "embedBuilder": "Embed Builder",
+        "forms": "Forms",
+        "scheduledMessages": "Scheduled Msgs",
+        "management": "Server Management",
+        "privacy": "Data Privacy",
+        "settings": "Settings",
+        "superAdmin": "Super Admin"
+    },
+    "menu": {
+        "switchServer": "Switch Server",
+        "logout": "Logout"
+    },
+    "dashboard": {
+        "welcomeBack": "Welcome back! Your server is running smoothly.",
+        "setupScore": "Setup Score",
+        "controlCenter": "Control Center",
+        "metrics": {
+            "totalMembers": "Total Members",
+            "activeChannels": "Active Channels",
+            "totalRoles": "Total Roles"
+        },
+        "descriptions": {
+            "moderation": "Manage bans, kicks, and auto-mod.",
+            "economy": "Global leaderboard & balance.",
+            "music": "Queue management & playback.",
+            "analytics": "Server insights & trends.",
+            "tickets": "Support system configuration.",
+            "embeds": "Visual message builder.",
+            "settings": "Main configuration."
+        }
     }
 }

@@ -14,7 +14,46 @@
     "warning": {
         "title": "Übersetzungswarnung",
         "content": "Bitte beachten Sie, dass diese Übersetzungen von der Community stammen und Fehler enthalten können.",
-        "confirm": "Verstanden, Sprache wechseln",
+        "confirm": "Ich verstehe, Sprache wechseln",
         "cancel": "Abbrechen"
+    },
+    "sidebar": {
+        "overview": "Übersicht",
+        "modules": "Module",
+        "moderation": "Moderation",
+        "music": "Musik",
+        "tickets": "Ticket-System",
+        "analytics": "Analytik",
+        "logs": "Audit-Protokolle",
+        "embedBuilder": "Embed-Ersteller",
+        "forms": "Formulare",
+        "scheduledMessages": "Geplante Nachrichten",
+        "management": "Server-Verwaltung",
+        "privacy": "Datenschutz",
+        "settings": "Einstellungen",
+        "superAdmin": "Super Admin"
+    },
+    "menu": {
+        "switchServer": "Server wechseln",
+        "logout": "Abmelden"
+    },
+    "dashboard": {
+        "welcomeBack": "Willkommen zurück! Dein Server läuft reibungslos.",
+        "setupScore": "Einrichtungs-Score",
+        "controlCenter": "Kontrollzentrum",
+        "metrics": {
+            "totalMembers": "Gesamtmitglieder",
+            "activeChannels": "Aktive Kanäle",
+            "totalRoles": "Gesamtrollen"
+        },
+        "descriptions": {
+            "moderation": "Verwalte Bans, Kicks und Auto-Mod.",
+            "economy": "Globale Bestenliste & Kontostand.",
+            "music": "Warteschlangenverwaltung & Wiedergabe.",
+            "analytics": "Server-Einblicke & Trends.",
+            "tickets": "Support-System-Konfiguration.",
+            "embeds": "Visueller Nachrichten-Ersteller.",
+            "settings": "Hauptkonfiguration."
+        }
     }
 }
