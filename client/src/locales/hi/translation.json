@@ -47,13 +47,27 @@
             "totalRoles": "कुल भूमिकाएँ"
         },
         "descriptions": {
-            "moderation": "बैन, किक और ऑटो-मोड प्रबंधित करें।",
-            "economy": "ग्लोबल लीडरबोर्ड और बैलेंस।",
-            "music": "कतार प्रबंधन और प्लेबैक।",
-            "analytics": "सर्वर अंतर्दृष्टि और रुझान।",
-            "tickets": "समर्थन प्रणाली कॉन्फ़िगरेशन।",
-            "embeds": "दृश्य संदेश निर्माता।",
-            "settings": "मुख्य विन्यास।"
+            "moderation": "Manage bans, kicks, and auto-mod.",
+            "economy": "Global leaderboard & balance.",
+            "music": "Queue management & playback.",
+            "analytics": "Server insights & trends.",
+            "tickets": "Support system configuration.",
+            "embeds": "Visual message builder.",
+            "settings": "Main configuration."
         }
+    },
+    "settings": {
+        "title": "General Settings",
+        "subtitle": "Configure global bot behavior and enable/disable modules.",
+        "coreConfig": "Core Configuration",
+        "prefix": "Command Prefix",
+        "prefixRequired": "Prefix is required",
+        "prefixHelp": "Default is !",
+        "language": "Language",
+        "moduleManagement": "Module Management",
+        "moduleHelp": "Enable or disable specific functionality.",
+        "premiumLocked": "Premium modules are locked for free users.",
+        "upgradeToPremium": "Upgrade to Premium to enable",
+        "saveChanges": "Save Changes"
     }
 }

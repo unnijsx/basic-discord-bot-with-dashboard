@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, Typography, Form, Input, Switch, Button, notification, Divider, Select, Row, Col, Spin, Alert, Tooltip, Space, Tag } from 'antd';
 import { SaveOutlined, SettingOutlined, AppstoreOutlined, GlobalOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import { useParams } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
-import i18n from '../i18n';
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
@@ -29,6 +29,7 @@ const StyledCard = styled(Card)`
 
 const Settings = () => {
     const { guildId } = useParams();
+    const { t, i18n } = useTranslation();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [form] = Form.useForm();
@@ -136,9 +137,9 @@ const Settings = () => {
 
             <PageHeader>
                 <Title level={2} style={{ color: '#fff', marginBottom: 8 }}>
-                    <SettingOutlined /> General Settings
+                    <SettingOutlined /> {t('settings.title')}
                 </Title>
-                <Text type="secondary">Configure global bot behavior and enable/disable modules.</Text>
+                <Text type="secondary">{t('settings.subtitle')}</Text>
             </PageHeader>
 
             <Form
@@ -148,14 +149,14 @@ const Settings = () => {
             >
                 <Row gutter={[24, 24]}>
                     <Col xs={24} lg={14}>
-                        <StyledCard title="Core Configuration" bordered={false}>
+                        <StyledCard title={t('settings.coreConfig')} bordered={false}>
                             <Row gutter={16}>
                                 <Col span={12}>
                                     <Form.Item
                                         name="prefix"
-                                        label={<span style={{ color: '#dbdee1' }}>Command Prefix</span>}
-                                        rules={[{ required: true, message: 'Prefix is required' }]}
-                                        extra={<span style={{ color: '#949ba4' }}>Default is !</span>}
+                                        label={<span style={{ color: '#dbdee1' }}>{t('settings.prefix')}</span>}
+                                        rules={[{ required: true, message: t('settings.prefixRequired') }]}
+                                        extra={<span style={{ color: '#949ba4' }}>{t('settings.prefixHelp')}</span>}
                                     >
                                         <Input
                                             size="large"
@@ -167,7 +168,7 @@ const Settings = () => {
                                 <Col span={12}>
                                     <Form.Item
                                         name="language"
-                                        label={<span style={{ color: '#dbdee1' }}>Language</span>}
+                                        label={<span style={{ color: '#dbdee1' }}>{t('settings.language')}</span>}
                                         initialValue="en"
                                     >
                                         <Select
@@ -186,9 +187,9 @@ const Settings = () => {
                             </Row>
                         </StyledCard>
 
-                        <StyledCard title="Module Management" bordered={false} style={{ marginTop: 24 }}>
+                        <StyledCard title={t('settings.moduleManagement')} bordered={false} style={{ marginTop: 24 }}>
                             <Paragraph style={{ color: '#949ba4', marginBottom: 24 }}>
-                                Enable or disable specific functionality. <span style={{ color: '#faa61a' }}>Premium modules are locked for free users.</span>
+                                {t('settings.moduleHelp')} <span style={{ color: '#faa61a' }}>{t('settings.premiumLocked')}</span>
                             </Paragraph>
 
                             <Row gutter={[16, 16]}>
@@ -200,10 +201,10 @@ const Settings = () => {
                                                 <Card size="small" style={{ background: '#2b2d31', borderColor: '#1e1f22', opacity: locked ? 0.6 : 1 }}>
                                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                                         <Space>
-                                                            <span style={{ color: '#fff', fontWeight: 600, textTransform: 'capitalize' }}>{key}</span>
+                                                            <span style={{ color: '#fff', fontWeight: 600, textTransform: 'capitalize' }}>{t(`sidebar.${key === 'logging' ? 'logs' : key}`)}</span>
                                                             {locked && <Tag color="gold">PREMIUM</Tag>}
                                                         </Space>
-                                                        <Tooltip title={locked ? "Upgrade to Premium to enable" : ""}>
+                                                        <Tooltip title={locked ? t('settings.upgradeToPremium') : ""}>
                                                             <Switch disabled={locked} />
                                                         </Tooltip>
                                                     </div>
@@ -253,7 +254,7 @@ const Settings = () => {
                         loading={saving}
                         style={{ minWidth: 150 }}
                     >
-                        Save Changes
+                        {t('settings.saveChanges')}
                     </Button>
                 </div>
             </Form>

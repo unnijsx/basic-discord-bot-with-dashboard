@@ -55,5 +55,19 @@
             "embeds": "Визуальный конструктор сообщений.",
             "settings": "Основная конфигурация."
         }
+    },
+    "settings": {
+        "title": "General Settings",
+        "subtitle": "Configure global bot behavior and enable/disable modules.",
+        "coreConfig": "Core Configuration",
+        "prefix": "Command Prefix",
+        "prefixRequired": "Prefix is required",
+        "prefixHelp": "Default is !",
+        "language": "Language",
+        "moduleManagement": "Module Management",
+        "moduleHelp": "Enable or disable specific functionality.",
+        "premiumLocked": "Premium modules are locked for free users.",
+        "upgradeToPremium": "Upgrade to Premium to enable",
+        "saveChanges": "Save Changes"
     }
 }
