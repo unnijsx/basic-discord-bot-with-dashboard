@@ -3,7 +3,7 @@ import { Card, Typography, Form, Input, Switch, Button, notification, Divider, S
 import { SaveOutlined, SettingOutlined, AppstoreOutlined, GlobalOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 
 const { Title, Text, Paragraph } = Typography;
@@ -31,7 +31,7 @@ const Settings = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [form] = Form.useForm();
-    const [api, contextHolder] = notification.useNotification();
+    const [notificationApi, contextHolder] = notification.useNotification();
 
     useEffect(() => {
         fetchSettings();
@@ -47,12 +47,7 @@ const Settings = () => {
 
     const fetchModuleTiers = async () => {
         try {
-            // In MainLayout we used api.get('/api/config') but here we imported axios directly from 'axios'? 
-            // Let's check imports. It imports axios from 'axios'. 
-            // We should consistency use our api instance or Axios with baseURL.
-            // Line 6 says `import axios from 'axios';` but line 43 uses `import.meta.env.VITE_API_URL`.
-            // I will use the same pattern.
-            const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/config`);
+            const { data } = await api.get('/api/config');
             setModuleTiers(data.moduleTiers || {});
         } catch (error) {
             console.error(error);
@@ -68,7 +63,7 @@ const Settings = () => {
         try {
             setLoading(true);
             const token = localStorage.getItem('token');
-            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/guilds/${guildId}/settings`, {
+            const response = await api.get(`/api/guilds/${guildId}/settings`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -88,7 +83,7 @@ const Settings = () => {
             setLoading(false);
         } catch (error) {
             console.error('Fetch settings error:', error);
-            api.error({
+            notificationApi.error({
                 message: 'Error Loading Settings',
                 description: 'Could not load guild settings. Please try again.'
             });
@@ -101,26 +96,18 @@ const Settings = () => {
             setSaving(true);
             const token = localStorage.getItem('token');
 
-            // Reconstruct the payload
-            // values will be: { prefix: '!', modules.moderation: true, ... }
-            // we need to transform 'modules.moderation' back to object structure if API expects it
-            // Ant Design Form with nested names handle this automatically typically? 
-            // Yes, if names are ['modules', 'moderation']
-
-            // However, our form items below use name={['modules', 'moderation']} which produces nested object in 'values'
-
-            await axios.put(`${import.meta.env.VITE_API_URL}/api/guilds/${guildId}/settings`, values, {
+            await api.put(`/api/guilds/${guildId}/settings`, values, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            api.success({
+            notificationApi.success({
                 message: 'Settings Saved',
                 description: 'Guild configuration has been updated successfully.'
             });
             setSaving(false);
         } catch (error) {
             console.error('Save settings error:', error);
-            api.error({
+            notificationApi.error({
                 message: 'Save Failed',
                 description: error.response?.data?.error || 'Failed to save settings.'
             });
