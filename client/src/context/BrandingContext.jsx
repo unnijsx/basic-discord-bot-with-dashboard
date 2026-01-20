@@ -7,7 +7,10 @@ export const BrandingProvider = ({ children }) => {
     const [branding, setBranding] = useState({
         appName: 'Rheox',
         appLogo: '/rheox_logo.png',
-        themeColor: '#5865F2'
+        primaryColor: '#ffb7c5',
+        secondaryColor: '#ff9eb5',
+        backgroundType: 'sakura',
+        backgroundValue: ''
     });
     const [loading, setLoading] = useState(true);
 
