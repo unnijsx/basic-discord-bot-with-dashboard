@@ -33,6 +33,7 @@ const Maintenance = lazy(() => import('./pages/Maintenance'));
 const Features = lazy(() => import('./pages/Features'));
 const Leaderboard = lazy(() => import('./pages/public/Leaderboard'));
 const MainLayout = lazy(() => import('./components/Layout/MainLayout'));
+import Footer from './components/Layout/Footer';
 
 const PublicLayout = ({ children }) => (
   <>
