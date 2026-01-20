@@ -1,4 +1,5 @@
 import React from 'react';
+import PremiumNavbar from '../components/Layout/PremiumNavbar';
 import { Typography, Row, Col, Card, Button } from 'antd';
 import styled from 'styled-components';
 import { RocketOutlined, HeartOutlined, TeamOutlined } from '@ant-design/icons';
@@ -28,6 +29,7 @@ const About = () => {
 
     return (
         <Container>
+            <PremiumNavbar />
             <Title style={{ color: '#fff', fontSize: '3rem' }}>About Rheox</Title>
             <Paragraph style={{ color: '#b9bbbe', fontSize: '1.2rem', maxWidth: 800, margin: '0 auto 60px auto' }}>
                 Rheox is an advanced, all-in-one Discord bot designed to supercharge your community.

@@ -1,4 +1,5 @@
 import React from 'react';
+import PremiumNavbar from '../components/Layout/PremiumNavbar';
 import { Typography, Collapse, Button, Card } from 'antd';
 import styled from 'styled-components';
 import { DiscordOutlined, QuestionCircleOutlined } from '@ant-design/icons';
@@ -40,6 +41,7 @@ const StyledCollapse = styled(Collapse)`
 const Support = () => {
     return (
         <Container>
+            <PremiumNavbar />
             <Title style={{ color: '#fff' }}>Support & FAQ</Title>
             <Text style={{ color: '#b9bbbe', fontSize: '1.2rem', marginBottom: 40 }}>
                 Have questions? We have answers.
