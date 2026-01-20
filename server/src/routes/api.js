@@ -3,6 +3,20 @@ const Guild = require('../models/Guild');
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const Level = require('../models/Level');
 const { logAction } = require('../utils/auditLogger');
+const SystemConfig = require('../models/SystemConfig');
+
+// Public Maintenance Check
+router.get('/maintenance', async (req, res) => {
+    try {
+        const config = await SystemConfig.findById('GLOBAL');
+        res.json({
+            maintenanceMode: config?.maintenanceMode || false,
+            maintenanceReason: config?.maintenanceReason || 'Under Maintenance'
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 const AuditLog = require('../models/AuditLog');
 const TicketPanel = require('../models/TicketPanel');
 const Ticket = require('../models/Ticket');
