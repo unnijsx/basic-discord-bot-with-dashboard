@@ -4,6 +4,7 @@ import { RocketOutlined, BarChartOutlined, SafetyCertificateOutlined, CustomerSe
 import { useNavigate } from 'react-router-dom';
 import styled, { keyframes, createGlobalStyle } from 'styled-components';
 import { useAuth } from '../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 import { useBranding } from '../context/BrandingContext';
 import PremiumNavbar from '../components/Layout/PremiumNavbar';
 
@@ -195,6 +196,7 @@ const CtaButton = styled(Button)`
 `;
 
 const LandingPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { appName, appLogo } = useBranding();
@@ -319,14 +321,14 @@ const LandingPage = () => {
             </span>
           </div>
           <Title style={{ fontSize: 'clamp(2.5rem, 5vw, 5rem)', margin: '20px 0', color: '#fff', lineHeight: 1.1, padding: '0 10px' }}>
-            Rheox <GradientText>Development</GradientText>
+            {t('landing.title')}
           </Title>
           <Paragraph style={{ fontSize: 'clamp(1rem, 1.5vw, 1.25rem)', color: '#b9bbbe', margin: '0 auto 40px auto', maxWidth: 600, lineHeight: 1.6, padding: '0 20px' }}>
-            Elevate your Discord server with advanced automation, crystal-clear music, and powerful moderation tools. Join the revolution today.
+            {t('landing.subtitle')}
           </Paragraph>
           <div style={{ display: 'flex', justifyContent: 'center', gap: 20, flexWrap: 'wrap' }}>
             <CtaButton type="primary" size="large" onClick={handleCta}>
-              {user ? 'Open Dashboard' : 'Add to Discord'} <RightOutlined />
+              {user ? t('navbar.dashboard') : t('landing.cta')} <RightOutlined />
             </CtaButton>
             <Button size="large" onClick={() => navigate('/features')} style={{
               height: 60,

@@ -6,6 +6,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useBranding } from '../../context/BrandingContext';
 import { useState } from 'react';
+import LanguageSwitcher from '../LanguageSwitcher';
 
 const { Title } = Typography;
 const { useBreakpoint } = Grid;
@@ -31,7 +32,10 @@ const NavbarContainer = styled.nav`
   }
 `;
 
+import { useTranslation } from 'react-i18next';
+
 const PremiumNavbar = ({ showLogout = false }) => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const location = useLocation();
     const { user } = useAuth();
@@ -49,10 +53,9 @@ const PremiumNavbar = ({ showLogout = false }) => {
         <>
             {!user && (
                 <>
-                    <Button type="text" style={{ color: '#ccc', fontSize: isMobile ? '1.2rem' : '1rem' }} onClick={() => { navigate('/'); setMobileMenuOpen(false); }}>Home</Button>
-                    <Button type="text" style={{ color: '#ccc', fontSize: isMobile ? '1.2rem' : '1rem' }} onClick={() => { navigate('/features'); setMobileMenuOpen(false); }}>Features</Button>
-                    <Button type="text" style={{ color: '#ccc', fontSize: isMobile ? '1.2rem' : '1rem' }} onClick={() => { navigate('/about'); setMobileMenuOpen(false); }}>About</Button>
-                    <Button type="text" style={{ color: '#ccc', fontSize: isMobile ? '1.2rem' : '1rem' }} onClick={() => { navigate('/support'); setMobileMenuOpen(false); }}>Support</Button>
+                    <Button type="text" style={{ color: '#ccc', fontSize: isMobile ? '1.2rem' : '1rem' }} onClick={() => { navigate('/'); setMobileMenuOpen(false); }}>{t('navbar.home')}</Button>
+                    <Button type="text" style={{ color: '#ccc', fontSize: isMobile ? '1.2rem' : '1rem' }} onClick={() => { navigate('/about'); setMobileMenuOpen(false); }}>{t('navbar.about')}</Button>
+                    <Button type="text" style={{ color: '#ccc', fontSize: isMobile ? '1.2rem' : '1rem' }} onClick={() => { navigate('/support'); setMobileMenuOpen(false); }}>{t('navbar.support')}</Button>
                 </>
             )}
 
@@ -63,12 +66,12 @@ const PremiumNavbar = ({ showLogout = false }) => {
                     </Button>
                 ) : (
                     <Button shape="round" ghost style={{ borderColor: 'rgba(255,255,255,0.3)', color: '#fff' }} onClick={() => { navigate('/dashboard'); setMobileMenuOpen(false); }} size={isMobile ? 'large' : 'middle'}>
-                        Dashboard
+                        {t('navbar.dashboard')}
                     </Button>
                 )
             ) : (
                 <Button shape="round" ghost style={{ borderColor: 'rgba(255,255,255,0.3)', color: '#fff' }} onClick={() => { navigate('/login'); setMobileMenuOpen(false); }} size={isMobile ? 'large' : 'middle'}>
-                    Login
+                    {t('navbar.login')}
                 </Button>
             )}
         </>
@@ -98,6 +101,7 @@ const PremiumNavbar = ({ showLogout = false }) => {
                 </>
             ) : (
                 <Space size="middle">
+                    <LanguageSwitcher />
                     <NavLinks />
                 </Space>
             )}

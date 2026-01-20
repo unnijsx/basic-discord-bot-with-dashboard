@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { ConfigProvider, theme } from 'antd';
 import App from './App.jsx';
 import './index.css';
+import './i18n'; // Initialize i18n
 import { BrandingProvider, useBranding } from './context/BrandingContext.jsx';
 
 const Root = () => {

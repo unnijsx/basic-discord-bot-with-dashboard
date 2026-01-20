@@ -1,0 +1,20 @@
+{
+    "navbar": {
+        "home": "Home",
+        "dashboard": "Dashboard",
+        "support": "Support",
+        "about": "About Team",
+        "login": "Login via Discord"
+    },
+    "landing": {
+        "title": "Welcome to Rheox",
+        "subtitle": "The ultimate Discord bot for your community.",
+        "cta": "Add to Server"
+    },
+    "warning": {
+        "title": "Translation Warning",
+        "content": "Please note that these translations are contributed by the community and may contain inaccuracies or issues. Proceed with caution.",
+        "confirm": "I Understand, Switch Language",
+        "cancel": "Cancel"
+    }
+}

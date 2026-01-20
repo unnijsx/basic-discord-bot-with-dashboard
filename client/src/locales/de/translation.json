@@ -1,0 +1,20 @@
+{
+    "navbar": {
+        "home": "Startseite",
+        "dashboard": "Dashboard",
+        "support": "Hilfe",
+        "about": "Über uns",
+        "login": "Anmelden"
+    },
+    "landing": {
+        "title": "Willkommen bei Rheox",
+        "subtitle": "Der ultimative Discord-Bot für deine Community.",
+        "cta": "Zum Server hinzufügen"
+    },
+    "warning": {
+        "title": "Übersetzungswarnung",
+        "content": "Bitte beachten Sie, dass diese Übersetzungen von der Community stammen und Fehler enthalten können.",
+        "confirm": "Verstanden, Sprache wechseln",
+        "cancel": "Abbrechen"
+    }
+}
