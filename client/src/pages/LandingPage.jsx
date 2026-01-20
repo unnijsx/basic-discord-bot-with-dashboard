@@ -96,8 +96,21 @@ const GradientText = styled.span`
   font-weight: 800;
 `;
 
-const FloatingCard = styled.div`
+const NotificationWrapper = styled.div`
   position: absolute;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: ${props => props.visible ? 1 : 0};
+  transform: ${props => props.visible ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.9)'};
+  pointer-events: ${props => props.visible ? 'auto' : 'none'};
+  z-index: 10;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+`;
+
+// Reuse FloatingCard styles but remove positioning and pointer-events logic
+const FloatingCardContent = styled.div`
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -105,11 +118,6 @@ const FloatingCard = styled.div`
   border-radius: 20px;
   animation: ${float} 6s ease-in-out infinite;
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-  z-index: -1;
-  
-  @media (max-width: 768px) {
-    display: none;
-  }
 `;
 
 const FadeInDiv = styled.div`
@@ -185,6 +193,38 @@ const LandingPage = () => {
   const { user } = useAuth();
   const { appName, appLogo } = useBranding();
 
+  /* Notification Logic */
+  const [activeCard, setActiveCard] = React.useState(null); // 0 for Member, 1 for Music, null for none
+
+  useEffect(() => {
+    let timeout;
+
+    const showRandomCard = () => {
+      // 30% chance to show nothing, 35% chance for card 0, 35% for card 1
+      const rand = Math.random();
+      if (rand < 0.3) {
+        setActiveCard(null);
+        timeout = setTimeout(showRandomCard, 3000); // Check again soon
+      } else {
+        const cardIndex = rand < 0.65 ? 0 : 1;
+        setActiveCard(cardIndex);
+
+        // Show for ~10 seconds (8000ms - 12000ms)
+        const duration = Math.random() * 4000 + 8000;
+
+        timeout = setTimeout(() => {
+          setActiveCard(null);
+          // Wait 3-8 seconds before potentially showing another
+          timeout = setTimeout(showRandomCard, Math.random() * 5000 + 3000);
+        }, duration);
+      }
+    };
+
+    // Start loop after initial delay
+    timeout = setTimeout(showRandomCard, 2000);
+    return () => clearTimeout(timeout);
+  }, []);
+
   useEffect(() => {
     document.title = "Rheox Development";
   }, []);
@@ -221,37 +261,6 @@ const LandingPage = () => {
     }
   ];
 
-
-
-  /* Notification Logic */
-  const [activeCard, setActiveCard] = React.useState(null); // 0 for Member, 1 for Music, null for none
-
-  useEffect(() => {
-    let timeout;
-
-    const showRandomCard = () => {
-      // 30% chance to show nothing, 35% chance for card 0, 35% for card 1
-      const rand = Math.random();
-      if (rand < 0.3) {
-        setActiveCard(null);
-        timeout = setTimeout(showRandomCard, 2000); // Check again soon
-      } else {
-        const cardIndex = rand < 0.65 ? 0 : 1;
-        setActiveCard(cardIndex);
-        // Show for 5-8 seconds
-        timeout = setTimeout(() => {
-          setActiveCard(null);
-          // Wait 3-10 seconds before potentially showing another
-          timeout = setTimeout(showRandomCard, Math.random() * 7000 + 3000);
-        }, Math.random() * 3000 + 5000);
-      }
-    };
-
-    // Start loop after initial delay
-    timeout = setTimeout(showRandomCard, 2000);
-    return () => clearTimeout(timeout);
-  }, []);
-
   return (
     <PageWrapper>
       <GlobalStyle />
@@ -259,44 +268,30 @@ const LandingPage = () => {
 
       <PremiumNavbar />
 
-      {/* Decorative Floating Elements - Now Controlled by State */}
-      <FloatingCard
-        style={{
-          top: '20%',
-          left: '10%',
-          opacity: activeCard === 0 ? 1 : 0,
-          transform: activeCard === 0 ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.9)',
-          transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-          pointerEvents: activeCard === 0 ? 'auto' : 'none'
-        }}
-      >
-        <Space>
-          <Avatar style={{ backgroundColor: '#5865F2' }} icon={<DiscordOutlined />} />
-          <div>
-            <Text strong style={{ color: '#fff' }}>New Member</Text><br />
-            <Text type="secondary" style={{ fontSize: 12 }}>Just joined the server!</Text>
-          </div>
-        </Space>
-      </FloatingCard>
+      {/* Decorative Floating Elements */}
+      <NotificationWrapper style={{ top: '20%', left: '10%' }} visible={activeCard === 0}>
+        <FloatingCardContent>
+          <Space>
+            <Avatar style={{ backgroundColor: '#5865F2' }} icon={<DiscordOutlined />} />
+            <div>
+              <Text strong style={{ color: '#fff' }}>New Member</Text><br />
+              <Text type="secondary" style={{ fontSize: 12 }}>Just joined the server!</Text>
+            </div>
+          </Space>
+        </FloatingCardContent>
+      </NotificationWrapper>
 
-      <FloatingCard
-        style={{
-          bottom: '20%',
-          right: '10%',
-          opacity: activeCard === 1 ? 1 : 0,
-          transform: activeCard === 1 ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.9)',
-          transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-          pointerEvents: activeCard === 1 ? 'auto' : 'none'
-        }}
-      >
-        <Space>
-          <CustomerServiceOutlined style={{ fontSize: 24, color: '#eb459e' }} />
-          <div>
-            <Text strong style={{ color: '#fff' }}>Now Playing</Text><br />
-            <Text type="secondary" style={{ fontSize: 12 }}>Lofi Hip Hop - 24/7</Text>
-          </div>
-        </Space>
-      </FloatingCard>
+      <NotificationWrapper style={{ bottom: '20%', right: '10%' }} visible={activeCard === 1}>
+        <FloatingCardContent>
+          <Space>
+            <CustomerServiceOutlined style={{ fontSize: 24, color: '#eb459e' }} />
+            <div>
+              <Text strong style={{ color: '#fff' }}>Now Playing</Text><br />
+              <Text type="secondary" style={{ fontSize: 12 }}>Lofi Hip Hop - 24/7</Text>
+            </div>
+          </Space>
+        </FloatingCardContent>
+      </NotificationWrapper>
 
       <HeroSection>
         <FadeInDiv>
