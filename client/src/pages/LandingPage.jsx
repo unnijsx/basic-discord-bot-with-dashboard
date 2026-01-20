@@ -32,7 +32,7 @@ const GlobalStyle = createGlobalStyle`
     margin: 0;
     padding: 0;
     overflow-x: hidden;
-    background-color: #000;
+    background-color: transparent; /* Let DynamicBackground show */
   }
 `;
 
