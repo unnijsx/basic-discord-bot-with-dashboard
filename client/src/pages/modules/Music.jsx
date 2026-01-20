@@ -260,9 +260,6 @@ const Music = () => {
                                     <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 18, display: 'block', marginTop: 8 }}>
                                         {status.currentTrack.author}
                                     </Text>
-                                    <div style={{ marginTop: 16 }}>
-                                        <Badge status="processing" text={<span style={{ color: '#4caf50' }}>Now Playing via Bluetooth... just kidding.</span>} />
-                                    </div>
                                 </>
                             ) : (
                                 <>
@@ -320,7 +317,7 @@ const Music = () => {
                                     <Button
                                         type="primary"
                                         shape="circle"
-                                        icon={<PlayCircleFilled style={{ fontSize: 32, marginLeft: 4 }} />}
+                                        icon={<PlayCircleFilled style={{ fontSize: 32 }} />}
                                         size="large"
                                         style={{ width: 64, height: 64, background: '#fff', color: '#000', border: 'none' }}
                                         onClick={() => handleAction('resume')}
