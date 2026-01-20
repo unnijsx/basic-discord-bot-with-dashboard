@@ -1,25 +1,36 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
+
+const CATEGORY_MAP = {
+    'economy': { emoji: '💰', label: 'Economy', description: 'Manage your wealth' },
+    'general': { emoji: '🌍', label: 'General', description: 'Basic commands' },
+    'leveling': { emoji: '📊', label: 'Leveling', description: 'XP and Ranks' },
+    'moderation': { emoji: '🛡️', label: 'Moderation', description: 'Admin tools' },
+    'music': { emoji: '🎵', label: 'Music', description: 'Play some tunes' },
+    'tickets': { emoji: '🎫', label: 'Tickets', description: 'Support system' }
+};
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('help')
         .setDescription('Shows a list of all available commands'),
     async execute(interaction) {
-        const foldersPath = path.join(__dirname, '..'); // 'server/src/bot/commands' root
+        const foldersPath = path.join(__dirname, '..');
         const commandFolders = fs.readdirSync(foldersPath);
 
         const embed = new EmbedBuilder()
-            .setTitle('🚀 Rheox Help Center')
-            .setDescription('Here are all the commands you can use!')
+            .setTitle('🦾 Rheox Command Center')
+            .setDescription('Select a category below to view commands.')
             .setColor('#5865F2')
             .setThumbnail(interaction.client.user.displayAvatarURL())
-            .setFooter({ text: 'Rheox Bot • v1.0' })
+            .setImage('https://media.discordapp.net/attachments/123000000000000000/123000000000000000/banner.png?width=1000') // Optional placeholder
+            .setFooter({ text: 'Rheox Bot • v2.0', iconURL: interaction.guild.iconURL() })
             .setTimestamp();
 
+        const categories = [];
+
         for (const folder of commandFolders) {
-            // Skip hidden or non-category folders if any (e.g., helpers)
             if (folder.startsWith('.') || folder === 'dev') continue;
 
             const commandsPath = path.join(foldersPath, folder);
@@ -28,16 +39,27 @@ module.exports = {
             const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
             if (commandFiles.length === 0) continue;
 
-            const commandsList = commandFiles.map(file => {
+            const commandList = commandFiles.map(file => {
                 const cmd = require(path.join(commandsPath, file));
                 return `\`/${cmd.data.name}\``;
             }).join(', ');
 
-            // Capitalize folder name for category title
-            const category = folder.charAt(0).toUpperCase() + folder.slice(1);
-            embed.addFields({ name: `📂 ${category}`, value: commandsList });
+            const info = CATEGORY_MAP[folder] || { emoji: '📂', label: folder.charAt(0).toUpperCase() + folder.slice(1), description: 'Misc commands' };
+
+            categories.push({
+                folder,
+                info,
+                commands: commandList
+            });
+
+            embed.addFields({
+                name: `${info.emoji} ${info.label}`,
+                value: commandList || 'No commands found',
+                inline: false
+            });
         }
 
+        // Just sending the embed for now. Can add a Select Menu later for detailed view if list gets too long.
         await interaction.reply({ embeds: [embed] });
     },
 };
