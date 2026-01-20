@@ -49,6 +49,7 @@ const PremiumNavbar = ({ showLogout = false }) => {
         <>
             {!user && (
                 <>
+                    <Button type="text" style={{ color: '#ccc', fontSize: isMobile ? '1.2rem' : '1rem' }} onClick={() => { navigate('/'); setMobileMenuOpen(false); }}>Home</Button>
                     <Button type="text" style={{ color: '#ccc', fontSize: isMobile ? '1.2rem' : '1rem' }} onClick={() => { navigate('/features'); setMobileMenuOpen(false); }}>Features</Button>
                     <Button type="text" style={{ color: '#ccc', fontSize: isMobile ? '1.2rem' : '1rem' }} onClick={() => { navigate('/about'); setMobileMenuOpen(false); }}>About</Button>
                     <Button type="text" style={{ color: '#ccc', fontSize: isMobile ? '1.2rem' : '1rem' }} onClick={() => { navigate('/support'); setMobileMenuOpen(false); }}>Support</Button>
