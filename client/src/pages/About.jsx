@@ -9,7 +9,7 @@ const { Title, Paragraph } = Typography;
 
 const Container = styled.div`
     padding: 80px 50px;
-    background: #121212;
+    background: transparent;
     min-height: 100vh;
     color: #fff;
     text-align: center;

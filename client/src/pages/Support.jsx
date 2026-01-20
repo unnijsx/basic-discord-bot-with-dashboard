@@ -10,7 +10,7 @@ const { Panel } = Collapse;
 
 const Container = styled.div`
     padding: 80px 50px;
-    background: #121212;
+    background: transparent;
     min-height: 100vh;
     color: #fff;
     display: flex;

@@ -153,7 +153,7 @@ const MainLayout = () => {
     };
 
     return (
-        <Layout style={{ minHeight: '100vh', background: '#121212' }} hasSider>
+        <Layout style={{ minHeight: '100vh', background: 'transparent' }} hasSider>
             {/* Desktop Sider - Hidden on Mobile */}
             {!isMobile && (
                 <StyledSider
