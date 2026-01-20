@@ -22,9 +22,9 @@ module.exports = {
                 .setTitle('🚀 Thanks for adding Rheox!')
                 .setDescription('Rheox is here to supercharge your server with advanced moderation, leveling, music, and more.')
                 .addFields(
-                    { name: '📊 Dashboard', value: '[Click Here](http://localhost:5173/dashboard)', inline: true },
+                    { name: '📊 Dashboard', value: `[Click Here](${process.env.FRONTEND_URL || 'https://rheox.unnijsx.online'}/dashboard)`, inline: true },
                     { name: '🆘 Support Server', value: '[Join Support](https://discord.gg/gyQh6KaSbp)', inline: true },
-                    { name: '📸 Instagram', value: '[Follow Us](instagram.com/u/rheox_)', inline: true }
+                    { name: '📸 Instagram', value: '[Follow Us](https://instagram.com/rheox_)', inline: true }
                 )
                 .setImage('https://media.discordapp.net/attachments/1187433894874452038/1202288056212357171/standard.gif?ex=65ccda2d&is=65ba652d&hm=6a2569209581f129524021703646545127606305606400970710636737560172&=') // Replace with a relevant nice gif if needed
                 .setFooter({ text: 'Rheox Development Team', iconURL: guild.client.user.displayAvatarURL() })
