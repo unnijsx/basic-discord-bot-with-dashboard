@@ -21,9 +21,10 @@ import AuditLogs from './pages/modules/AuditLogs';
 import DataPrivacy from './pages/DataPrivacy';
 import SuperAdmin from './pages/SuperAdmin';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { SocketProvider } from './context/SocketContext';
+import { SocketProvider, useSocket } from './context/SocketContext';
 import Settings from './pages/Settings';
 import ProtectedRoute from './components/ProtectedRoute';
+import GlobalAlert from './components/GlobalAlert';
 import TicketSystem from './pages/modules/TicketSystem';
 import TicketHistory from './pages/modules/TicketHistory';
 import Maintenance from './pages/Maintenance';
@@ -50,12 +51,12 @@ const App = () => {
 
   return (
     <AuthProvider>
-      <AppContent maintenance={maintenance} />
+      <AppContent maintenance={maintenance} setMaintenance={setMaintenance} />
     </AuthProvider>
   );
 };
 
-const AppContent = ({ maintenance }) => {
+const AppContent = ({ maintenance, setMaintenance }) => {
   const { user, loading } = useAuth(); // Access context directly since we are inside Provider
   // Need to import AuthContext to use useContext, or export useAuth outside
   // But getting context from useAuth inside the same file where AuthProvider is rendered is tricky if App is parent.
@@ -65,16 +66,26 @@ const AppContent = ({ maintenance }) => {
   return (
     <AntdApp>
       <SocketProvider>
-        <RouterWrapper maintenance={maintenance} />
+        <RouterWrapper maintenance={maintenance} setMaintenance={setMaintenance} />
       </SocketProvider>
     </AntdApp>
   );
 };
 
-const RouterWrapper = ({ maintenance }) => {
-  const { user, loading } = useAuth(); // Now safe to use
+const RouterWrapper = ({ maintenance, setMaintenance }) => {
+  const { user, loading } = useAuth();
+  const socket = useSocket();
 
-  if (loading) return null; // Let AuthContext handle spinner or return null
+  // Listen for real-time system alerts
+  React.useEffect(() => {
+    if (!socket) return;
+    socket.on('systemAlert', (alert) => {
+      setMaintenance(prev => ({ ...prev, currentAlert: alert }));
+    });
+    return () => socket.off('systemAlert');
+  }, [socket, setMaintenance]);
+
+  if (loading) return null;
 
   // Maintenance Logic
   if (maintenance?.maintenanceMode) {
@@ -88,6 +99,7 @@ const RouterWrapper = ({ maintenance }) => {
 
   return (
     <Router>
+      <GlobalAlert alertData={maintenance?.currentAlert} />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/features" element={<Features />} />

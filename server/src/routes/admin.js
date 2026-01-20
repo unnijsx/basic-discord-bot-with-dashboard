@@ -123,4 +123,24 @@ router.post('/broadcast', async (req, res) => {
     }
 });
 
+// CLEAR Broadcast
+router.delete('/broadcast', async (req, res) => {
+    try {
+        const config = await SystemConfig.findByIdAndUpdate(
+            'GLOBAL',
+            {
+                'currentAlert.active': false
+            },
+            { new: true }
+        );
+
+        // Optional: Emit via socket.io
+        if (req.io) req.io.emit('systemAlert', { active: false });
+
+        res.json({ success: true, alert: config.currentAlert });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;

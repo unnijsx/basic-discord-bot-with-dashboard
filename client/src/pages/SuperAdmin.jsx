@@ -224,6 +224,25 @@ const SuperAdmin = () => {
                             >
                                 Broadcast Alert
                             </Button>
+
+                            {config?.currentAlert?.active && (
+                                <Button
+                                    type="default"
+                                    danger
+                                    style={{ marginTop: 16, marginLeft: 8 }}
+                                    onClick={async () => {
+                                        try {
+                                            await axios.delete('/admin/broadcast');
+                                            message.success('Broadcast cleared');
+                                            fetchData();
+                                        } catch (error) {
+                                            message.error('Failed to clear broadcast');
+                                        }
+                                    }}
+                                >
+                                    Clear Broadcast
+                                </Button>
+                            )}
                         </Card>
                     </Col>
                 </Row>
