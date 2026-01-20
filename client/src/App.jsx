@@ -20,7 +20,7 @@ import ServerAnalytics from './pages/ServerAnalytics';
 import AuditLogs from './pages/modules/AuditLogs';
 import DataPrivacy from './pages/DataPrivacy';
 import SuperAdmin from './pages/SuperAdmin';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import Settings from './pages/Settings';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -56,7 +56,7 @@ const App = () => {
 };
 
 const AppContent = ({ maintenance }) => {
-  const { user, loading } = React.useContext(AuthContext); // Access context directly since we are inside Provider
+  const { user, loading } = useAuth(); // Access context directly since we are inside Provider
   // Need to import AuthContext to use useContext, or export useAuth outside
   // But getting context from useAuth inside the same file where AuthProvider is rendered is tricky if App is parent.
   // Correct pattern: Move AuthProvider separate or use child component.
