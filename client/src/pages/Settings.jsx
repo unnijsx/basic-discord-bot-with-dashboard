@@ -47,7 +47,7 @@ const Settings = () => {
 
     const fetchModuleTiers = async () => {
         try {
-            const { data } = await api.get('/api/config');
+            const { data } = await api.get('/config');
             setModuleTiers(data.moduleTiers || {});
         } catch (error) {
             console.error(error);
@@ -63,7 +63,7 @@ const Settings = () => {
         try {
             setLoading(true);
             const token = localStorage.getItem('token');
-            const response = await api.get(`/api/guilds/${guildId}/settings`, {
+            const response = await api.get(`/guilds/${guildId}/settings`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -96,7 +96,7 @@ const Settings = () => {
             setSaving(true);
             const token = localStorage.getItem('token');
 
-            await api.put(`/api/guilds/${guildId}/settings`, values, {
+            await api.put(`/guilds/${guildId}/settings`, values, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
