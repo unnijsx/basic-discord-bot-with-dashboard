@@ -374,9 +374,6 @@ const LandingPage = () => {
         <Button type="primary" size="large" shape="round" style={{ marginTop: 20, height: 50, padding: '0 40px' }} onClick={handleCta}>
           Get Started Now
         </Button>
-        <div style={{ marginTop: 60, color: '#444' }}>
-          &copy; 2026 Rheox Bot. All rights reserved.
-        </div>
       </div>
     </PageWrapper>
   );
