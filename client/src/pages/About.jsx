@@ -75,8 +75,8 @@ const About = () => {
             <PremiumNavbar />
             <Title style={{ color: '#fff', fontSize: '3rem' }}>About Rheox</Title>
             <Paragraph style={{ color: '#b9bbbe', fontSize: '1.2rem', maxWidth: 800, margin: '0 auto 60px auto' }}>
-                Rheox is a comprehensive development community and bot platform.
-                Our mission is to empower communities with advanced tools, seamless moderation, and engaging features.
+                Established in 2022, Rheox is a vibrant development community dedicated to innovation.
+                We actively specialize in developing Bots, unique Discord Servers, modern Websites, UI/UX Designs, and 3D Arts.
             </Paragraph>
 
             <Row gutter={[32, 32]} justify="center" style={{ marginBottom: 80 }}>

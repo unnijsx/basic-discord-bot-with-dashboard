@@ -9,7 +9,7 @@ module.exports = {
 
         const embed = new EmbedBuilder()
             .setTitle('🤖 About Rheox')
-            .setDescription('Rheox is a powerful, multi-purpose Discord bot designed to supercharge your community experience.')
+            .setDescription('Rheox is a development community established in 2022. We specialize in Bots, Websites, UI/UX, and 3D Arts.')
             .setThumbnail(client.user.displayAvatarURL())
             .setColor('#ffb7c5')
             .addFields(
