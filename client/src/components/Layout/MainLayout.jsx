@@ -223,7 +223,6 @@ const MainLayout = () => {
                         {user && (
                             <div style={{ textAlign: 'right', marginRight: 8, display: isMobile ? 'none' : 'block' }}>
                                 <div style={{ color: '#fff', fontWeight: 600, fontSize: 14 }}>{user.globalName || user.username}</div>
-                                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>{user.globalName ? user.username : `#${user.discriminator}`}</div>
                             </div>
                         )}
                         <Dropdown menu={menuProps} placement="bottomRight">
