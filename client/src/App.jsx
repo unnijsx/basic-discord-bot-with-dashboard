@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { App as AntdApp, Spin } from 'antd';
+import { App as AntdApp, Spin, ConfigProvider, theme } from 'antd'; // Added ConfigProvider, theme
+import SakuraBackground from './components/Layout/SakuraBackground'; // Import Background
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SocketProvider, useSocket } from './context/SocketContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -11,6 +12,8 @@ import api from './api/axios';
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const About = lazy(() => import('./pages/About'));
 const Support = lazy(() => import('./pages/Support'));
+const Terms = lazy(() => import('./pages/Terms'));
+const Privacy = lazy(() => import('./pages/Privacy'));
 const Login = lazy(() => import('./pages/Login'));
 const DashboardHome = lazy(() => import('./pages/DashboardHome'));
 const ServerSelector = lazy(() => import('./pages/ServerSelector'));
@@ -75,11 +78,25 @@ const App = () => {
 
 const AppContent = ({ maintenance, setMaintenance }) => {
   return (
-    <AntdApp>
-      <SocketProvider>
-        <RouterWrapper maintenance={maintenance} setMaintenance={setMaintenance} />
-      </SocketProvider>
-    </AntdApp>
+    <ConfigProvider
+      theme={{
+        algorithm: theme.darkAlgorithm,
+        token: {
+          colorPrimary: '#ffb7c5', // Sakura Pink
+          colorBgBase: '#0a0a0a',
+          colorBgContainer: '#121212',
+          borderRadius: 8,
+          fontFamily: "'Inter', sans-serif",
+        },
+      }}
+    >
+      <AntdApp>
+        <SakuraBackground />
+        <SocketProvider>
+          <RouterWrapper maintenance={maintenance} setMaintenance={setMaintenance} />
+        </SocketProvider>
+      </AntdApp>
+    </ConfigProvider>
   );
 };
 
@@ -122,6 +139,8 @@ const RouterWrapper = ({ maintenance, setMaintenance }) => {
           <Route path="/login" element={<PublicLayout><Login /></PublicLayout>} />
           <Route path="/about" element={<PublicLayout><About /></PublicLayout>} />
           <Route path="/support" element={<PublicLayout><Support /></PublicLayout>} />
+          <Route path="/terms" element={<PublicLayout><Terms /></PublicLayout>} />
+          <Route path="/privacy" element={<PublicLayout><Privacy /></PublicLayout>} />
           <Route path="/leaderboard/:guildId" element={<PublicLayout><Leaderboard /></PublicLayout>} />
 
           {/* Protected Routes */}

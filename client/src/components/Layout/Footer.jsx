@@ -10,6 +10,9 @@ const FooterContainer = styled.footer`
   font-size: 0.9rem;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 `;
 
 const SecureLink = styled.a`
@@ -24,13 +27,19 @@ const SecureLink = styled.a`
 `;
 
 const Footer = () => {
-    const link = getSecureSupportLink();
+  const link = getSecureSupportLink();
 
-    return (
-        <FooterContainer>
-            &copy; {new Date().getFullYear()} <SecureLink href={link} target="_blank" rel="noopener noreferrer">Rheox</SecureLink>. All rights reserved.
-        </FooterContainer>
-    );
+  return (
+    <FooterContainer>
+      <div>
+        &copy; {new Date().getFullYear()} <SecureLink href={link} target="_blank" rel="noopener noreferrer">Rheox</SecureLink>. All rights reserved.
+      </div>
+      <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', fontSize: '0.85rem' }}>
+        <SecureLink href="/terms">Terms</SecureLink>
+        <SecureLink href="/privacy">Privacy</SecureLink>
+      </div>
+    </FooterContainer>
+  );
 };
 
 export default Footer;
