@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Layout, Card, Switch, Statistic, Row, Col, Input, Button, Alert, message, List, Tag, Select, Table, Avatar, Tooltip, Space, Menu, Drawer } from 'antd';
 import {
     ThunderboltOutlined, WarningOutlined, DatabaseOutlined, GlobalOutlined, RobotOutlined,
-    UserOutlined, AppstoreOutlined, MenuOutlined, BgColorsOutlined
+    UserOutlined, AppstoreOutlined, MenuOutlined, BgColorsOutlined, SafetyCertificateOutlined
 } from '@ant-design/icons';
 import axios from '../api/axios';
 import { useAuth } from '../context/AuthContext';
@@ -173,7 +173,54 @@ const SuperAdmin = () => {
         }
     };
 
-    if (!user?.isSuperAdmin) {
+    // ADMIN MANAGEMENT
+    const [admins, setAdmins] = useState([]);
+    const [newAdminId, setNewAdminId] = useState('');
+    const [loadingAdmins, setLoadingAdmins] = useState(false);
+
+    const fetchAdmins = async () => {
+        setLoadingAdmins(true);
+        try {
+            const { data } = await axios.get('/admin/admins');
+            setAdmins(data);
+        } catch (err) {
+            message.error('Failed to fetch admins');
+        } finally {
+            setLoadingAdmins(false);
+        }
+    };
+
+    const handleAddAdmin = async () => {
+        if (!newAdminId) return;
+        try {
+            await axios.post('/admin/admins', { discordId: newAdminId });
+            message.success('Admin added successfully');
+            setNewAdminId('');
+            fetchAdmins();
+        } catch (err) {
+            message.error(err.response?.data?.message || 'Failed to add admin');
+        }
+    };
+
+    const handleRemoveAdmin = async (discordId) => {
+        try {
+            await axios.delete(`/admin/admins/${discordId}`);
+            message.success('Admin removed successfully');
+            fetchAdmins();
+        } catch (err) {
+            message.error('Failed to remove admin');
+        }
+    };
+
+    useEffect(() => {
+        if (selectedKey === 'admins') {
+            fetchAdmins();
+        }
+    }, [selectedKey]);
+
+    const hasAccess = user?.isSuperAdmin || user?.isAdmin;
+
+    if (!hasAccess) {
         return <div style={{ padding: 50, textAlign: 'center' }}><h1>🚫 Restricted Area</h1></div>;
     }
 
@@ -183,6 +230,7 @@ const SuperAdmin = () => {
         { key: 'users', icon: <UserOutlined />, label: 'User Management' },
         { key: 'modules', icon: <AppstoreOutlined />, label: 'Module Config' },
         { key: 'theme', icon: <BgColorsOutlined />, label: 'Theme & Branding' },
+        { key: 'admins', icon: <SafetyCertificateOutlined />, label: 'Manage Admins' }, // Valid for all to see list
     ];
 
     const renderContent = () => {
@@ -339,6 +387,52 @@ const SuperAdmin = () => {
                                 </Button>
                             </Col>
                         </Row>
+                    </Card>
+                );
+            case 'admins':
+                return (
+                    <Card title="🛡️ Admin Management" bordered={false}>
+                        {user?.isSuperAdmin && (
+                            <div style={{ marginBottom: 20, display: 'flex', gap: 10 }}>
+                                <Input
+                                    placeholder="Enter Discord ID to promote"
+                                    value={newAdminId}
+                                    onChange={(e) => setNewAdminId(e.target.value)}
+                                    style={{ maxWidth: 300 }}
+                                />
+                                <Button type="primary" onClick={handleAddAdmin} icon={<SafetyCertificateOutlined />}>
+                                    Add Admin
+                                </Button>
+                            </div>
+                        )}
+                        {!user?.isSuperAdmin && (
+                            <Alert
+                                message="ReadOnly Access"
+                                description="You can view the admin list, but only Super Admins can add or remove administrators."
+                                type="info"
+                                showIcon
+                                style={{ marginBottom: 20 }}
+                            />
+                        )}
+                        <List
+                            loading={loadingAdmins}
+                            itemLayout="horizontal"
+                            dataSource={admins}
+                            bordered
+                            renderItem={item => (
+                                <List.Item
+                                    actions={user?.isSuperAdmin ? [
+                                        <Button danger onClick={() => handleRemoveAdmin(item.discordId)}>Remove</Button>
+                                    ] : []}
+                                >
+                                    <List.Item.Meta
+                                        avatar={<Avatar src={`https://cdn.discordapp.com/avatars/${item.discordId}/${item.avatar}.png`} />}
+                                        title={item.username}
+                                        description={<Tag color="blue">{item.discordId}</Tag>}
+                                    />
+                                </List.Item>
+                            )}
+                        />
                     </Card>
                 );
             default: // overview

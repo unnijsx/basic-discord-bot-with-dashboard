@@ -3,17 +3,35 @@ const SystemConfig = require('../models/SystemConfig');
 const Guild = require('../models/Guild');
 const User = require('../models/User');
 
-// Middleware to check if user is Super Admin
-const requireSuperAdmin = (req, res, next) => {
+// Middleware: Checks if user is ANY type of Admin (Super or Regular)
+const requireAdminAccess = async (req, res, next) => {
     const superAdmins = (process.env.SUPER_ADMIN_IDS || '').split(',').map(id => id.trim());
-    // Use discordId from the user model, not the mongo _id
+
+    // Check if Super Admin
     if (req.user && superAdmins.includes(req.user.discordId)) {
+        req.user.isSuperAdmin = true;
+        req.user.isAdmin = true; // Super admin is also admin
+        return next();
+    }
+
+    // Check if Regular Admin (from DB)
+    if (req.user && req.user.isAdmin) {
+        req.user.isSuperAdmin = false;
+        return next();
+    }
+
+    return res.status(403).json({ message: 'Forbidden: Admins only' });
+};
+
+// Middleware: Strict Super Admin Check
+const requireSuperAdmin = (req, res, next) => {
+    if (req.user && req.user.isSuperAdmin) {
         return next();
     }
     return res.status(403).json({ message: 'Forbidden: Super Admins only' });
 };
 
-router.use(requireSuperAdmin);
+router.use(requireAdminAccess);
 
 // GET System Config
 router.get('/system-config', async (req, res) => {
@@ -177,6 +195,48 @@ router.put('/users/:userId/premium', async (req, res) => {
         user.isPremium = isPremium;
         await user.save();
         res.json(user);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// --- ADMIN MANAGEMENT (Super Admin Only) ---
+
+// GET /admin/admins
+router.get('/admins', async (req, res) => {
+    try {
+        const admins = await User.find({ isAdmin: true }).select('discordId username avatar');
+        res.json(admins);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// POST /admin/admins (Add Admin)
+router.post('/admins', requireSuperAdmin, async (req, res) => {
+    try {
+        const { discordId } = req.body;
+        const user = await User.findOne({ discordId });
+
+        if (!user) return res.status(404).json({ message: 'User must login at least once before being made admin' });
+
+        user.isAdmin = true;
+        await user.save();
+        res.json(user);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// DELETE /admin/admins/:discordId (Remove Admin)
+router.delete('/admins/:discordId', requireSuperAdmin, async (req, res) => {
+    try {
+        const user = await User.findOne({ discordId: req.params.discordId });
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        user.isAdmin = false;
+        await user.save();
+        res.json({ message: 'Admin removed' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

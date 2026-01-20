@@ -8,6 +8,7 @@ const UserSchema = new mongoose.Schema({
     accessToken: { type: String },
     refreshToken: { type: String },
     guilds: [{ type: String }], // List of Guild IDs where user is admin
+    isAdmin: { type: Boolean, default: false }, // Site Admin
     isPremium: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now }
 });
