@@ -12,6 +12,12 @@ module.exports = {
         const player = node.players.get(interaction.guild.id);
         if (!player) return interaction.reply({ content: 'I am not playing anything.', ephemeral: true });
 
+        const guildQueue = client.queue.get(interaction.guild.id);
+        if (guildQueue) {
+            if (guildQueue.disconnectTimeout) clearTimeout(guildQueue.disconnectTimeout);
+            client.queue.delete(interaction.guild.id);
+        }
+
         await client.shoukaku.leaveVoiceChannel(interaction.guild.id);
         return interaction.reply('⏹️ Stopped playback and left the channel.');
     },

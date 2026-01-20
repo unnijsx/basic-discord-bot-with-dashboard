@@ -105,9 +105,15 @@ module.exports = {
                         return; // Don't shift queue
                     }
 
-                    const nextTrack = guildQueue.tracks.shift();
                     if (nextTrack) {
                         guildQueue.current = nextTrack;
+
+                        // Clear timeout just in case
+                        if (guildQueue.disconnectTimeout) {
+                            clearTimeout(guildQueue.disconnectTimeout);
+                            guildQueue.disconnectTimeout = null;
+                        }
+
                         await player.playTrack({ track: { encoded: nextTrack.encoded } });
                         if (wasPaused) await player.setPaused(true); // Persist pause state if needed? or usually next song should play? Standard behavior: play next song.
 
@@ -117,6 +123,21 @@ module.exports = {
                         guildQueue.current = null;
                         client.io?.to(interaction.guild.id).emit('playerUpdate', { isPlaying: false, currentTrack: null });
                         client.io?.to(interaction.guild.id).emit('queueUpdate');
+
+                        // Queue finished, start disconnect timer (5 minutes)
+                        if (guildQueue.disconnectTimeout) clearTimeout(guildQueue.disconnectTimeout);
+
+                        guildQueue.disconnectTimeout = setTimeout(() => {
+                            // Check if player still exists and is not playing
+                            // Re-fetch guildQueue from Map to ensure it's still valid
+                            const currentQueue = client.queue.get(interaction.guild.id);
+                            if (currentQueue && !currentQueue.current && currentQueue.tracks.length === 0) {
+                                client.shoukaku.leaveVoiceChannel(interaction.guild.id);
+                                client.queue.delete(interaction.guild.id);
+                                console.log(`[Music] Auto-disconnected from ${interaction.guild.name} due to inactivity.`);
+                                client.io?.to(interaction.guild.id).emit('playerUpdate', { isPlaying: false, currentTrack: null }); // Ensure frontend knows
+                            }
+                        }, 5 * 60 * 1000); // 5 minutes
                     }
                 });
             }
@@ -127,6 +148,13 @@ module.exports = {
             if (guildQueue.current) {
                 // Add to queue
                 guildQueue.tracks.push(trackItem);
+
+                // If a track is added while the bot is waiting to disconnect, cancel the timeout
+                if (guildQueue.disconnectTimeout) {
+                    clearTimeout(guildQueue.disconnectTimeout);
+                    guildQueue.disconnectTimeout = null;
+                }
+
                 const queueEmbed = new EmbedBuilder()
                     .setColor('#00b0f4')
                     .setTitle('📜 Added to Queue')
@@ -138,6 +166,13 @@ module.exports = {
             } else {
                 // Play Immediately
                 guildQueue.current = trackItem;
+
+                // Clear any existing disconnect timeout since we are playing now
+                if (guildQueue.disconnectTimeout) {
+                    clearTimeout(guildQueue.disconnectTimeout);
+                    guildQueue.disconnectTimeout = null;
+                }
+
                 await player.playTrack({ track: { encoded: track } });
                 client.io?.to(interaction.guild.id).emit('playerUpdate', { isPlaying: true });
                 client.io?.to(interaction.guild.id).emit('queueUpdate');

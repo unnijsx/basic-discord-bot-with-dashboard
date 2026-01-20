@@ -80,23 +80,45 @@ module.exports = {
         }
 
         // --- Moderation: Auto-Mod ---
+        // --- Moderation: Auto-Mod ---
         if (guildSettings.modules.moderation && guildSettings.moderationConfig.autoMod) {
-            const content = message.content.toLowerCase();
-            const foundBadWord = BAD_WORDS.find(word => content.includes(word));
+            // Check specific filters
+            const filters = guildSettings.moderationConfig.autoModFilters;
+            if (filters.badWords) {
+                const content = message.content.toLowerCase();
+                // Combine hardcoded defaults (optional) with Guild specific banned words
+                const allBadWords = [...(guildSettings.moderationConfig.bannedWords || []), ...BAD_WORDS];
 
-            if (foundBadWord) {
-                try {
-                    await message.delete();
-                    const warningMsg = await message.channel.send(`${message.author}, watch your language! ⚠️`);
+                const foundBadWord = allBadWords.find(word => content.includes(word.toLowerCase()));
 
-                    // Log to Audit Log
-                    const { logAction } = require('../../utils/auditLogger');
-                    logAction(message.guild.id, 'AUTO_MOD_DELETE', { id: 'BOT', username: 'AutoMod' }, { content: content, word: foundBadWord, userId: message.author.id });
+                if (foundBadWord) {
+                    if (foundBadWord) {
+                        try {
+                            const action = guildSettings.moderationConfig.actions.badWords || 'delete'; // default to delete
 
-                    setTimeout(() => warningMsg.delete().catch(() => { }), 5000);
-                    return; // Stop processing if message deleted
-                } catch (error) {
-                    console.error('Failed to delete message:', error);
+                            if (action === 'delete') {
+                                if (message.deletable) await message.delete();
+                                const warningMsg = await message.channel.send(`${message.author}, watch your language! ⚠️`);
+                                setTimeout(() => warningMsg.delete().catch(() => { }), 5000);
+                            } else if (action === 'warn') {
+                                // detailed warn logic could be here (e.g., DM user)
+                                // for now just send channel warning
+                                const warningMsg = await message.channel.send(`${message.author}, please refrain from using inappropriate language. ⚠️`);
+                                setTimeout(() => warningMsg.delete().catch(() => { }), 5000);
+                            }
+
+                            // Log to Audit Log
+                            const { logAction } = require('../../utils/auditLogger');
+                            // Pass message.client to enable Discord logging
+                            logAction(message.guild.id, 'AUTO_MOD_BAD_WORD', { id: 'BOT', username: 'AutoMod' }, { content: message.content, word: foundBadWord, userId: message.author.id, actionTaken: action }, { id: message.author.id, username: message.author.username }, message.client);
+
+                            // We return if deleted to stop processing strings, but if warn we might want to continue? 
+                            // Generally if it matched a bad word we stop there.
+                            return;
+                        } catch (error) {
+                            console.error('Failed to handle auto-mod action:', error);
+                        }
+                    }
                 }
             }
         }
