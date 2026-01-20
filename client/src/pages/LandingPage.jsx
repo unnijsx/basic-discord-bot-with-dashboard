@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Button, Typography, Space, Row, Col, Card, Avatar } from 'antd';
-import { RocketOutlined, BarChartOutlined, SafetyCertificateOutlined, CustomerServiceOutlined, DiscordOutlined, RightOutlined, InstagramOutlined } from '@ant-design/icons';
+import { RocketOutlined, BarChartOutlined, SafetyCertificateOutlined, CustomerServiceOutlined, DiscordOutlined, RightOutlined, InstagramOutlined, TrophyOutlined, FireOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import styled, { keyframes, createGlobalStyle } from 'styled-components';
 import { useAuth } from '../context/AuthContext';
