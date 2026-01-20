@@ -16,6 +16,47 @@ module.exports = {
     async execute(message) {
         if (message.author.bot) return;
 
+        // --- AFK System ---
+        const User = require('../../models/User');
+
+        // 1. Check if Author is AFK -> Remove AFK
+        try {
+            const authorData = await User.findOne({ discordId: message.author.id });
+            if (authorData && authorData.afk.isAfk) {
+                authorData.afk.isAfk = false;
+                authorData.afk.reason = null;
+                await authorData.save();
+
+                // Reset Nickname if possible
+                if (message.guild.members.me.permissions.has('ManageNicknames')) {
+                    const member = message.member;
+                    if (member.nickname && member.nickname.startsWith('[AFK]')) {
+                        await member.setNickname(member.nickname.replace('[AFK] ', '').substring(0, 32));
+                    }
+                }
+
+                message.reply(`👋 Welcome back ${message.author}! I've removed your AFK status.`).then(m => setTimeout(() => m.delete().catch(() => { }), 10000));
+            }
+
+            // 2. Check if Mentioned User is AFK
+            if (message.mentions.users.size > 0) {
+                message.mentions.users.forEach(async (user) => {
+                    const mentionedData = await User.findOne({ discordId: user.id });
+                    if (mentionedData && mentionedData.afk.isAfk) {
+                        const timeAgo = Math.floor((Date.now() - mentionedData.afk.timestamp) / 1000); // seconds
+
+                        // Relative time string logic or just simple text
+                        const relativeTime = `<t:${Math.floor(mentionedData.afk.timestamp.getTime() / 1000)}:R>`;
+
+                        message.reply(`💤 **${user.username}** is AFK: ${mentionedData.afk.reason} (${relativeTime})`);
+                    }
+                });
+            }
+
+        } catch (err) {
+            console.error('AFK Check Error:', err);
+        }
+
         // --- Analytics ---
         const analytics = require('../../utils/analytics');
         analytics.trackMessage(message.guild?.id, message.author.id);

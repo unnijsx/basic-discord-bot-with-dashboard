@@ -10,6 +10,11 @@ const UserSchema = new mongoose.Schema({
     guilds: [{ type: String }], // List of Guild IDs where user is admin
     isAdmin: { type: Boolean, default: false }, // Site Admin
     isPremium: { type: Boolean, default: false },
+    afk: {
+        isAfk: { type: Boolean, default: false },
+        reason: { type: String, default: 'AFK' },
+        timestamp: { type: Date, default: null }
+    },
     createdAt: { type: Date, default: Date.now }
 });
 

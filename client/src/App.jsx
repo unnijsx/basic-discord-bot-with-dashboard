@@ -36,6 +36,10 @@ const TicketHistory = lazy(() => import('./pages/modules/TicketHistory'));
 const Maintenance = lazy(() => import('./pages/Maintenance'));
 const Features = lazy(() => import('./pages/Features'));
 const Leaderboard = lazy(() => import('./pages/public/Leaderboard'));
+const Economy = lazy(() => import('./pages/Economy'));
+const Polls = lazy(() => import('./pages/Polls'));
+const Roles = lazy(() => import('./pages/Roles'));
+const Suggestions = lazy(() => import('./pages/Suggestions'));
 const MainLayout = lazy(() => import('./components/Layout/MainLayout'));
 import Footer from './components/Layout/Footer';
 
@@ -177,6 +181,10 @@ const RouterWrapper = ({ maintenance, setMaintenance }) => {
             <Route path="forms" element={<FormBuilder />} />
             <Route path="scheduled-messages" element={<ScheduledMessages />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="economy" element={<Economy />} />
+            <Route path="polls" element={<Polls />} />
+            <Route path="roles" element={<Roles />} />
+            <Route path="suggestions" element={<Suggestions />} />
           </Route>
         </Routes>
       </Suspense>

@@ -85,6 +85,43 @@ module.exports = {
             if (interaction.customId === 'ticket_close_confirm') {
                 await handleTicketClose(interaction);
             }
+            // --- Poll System ---
+            if (interaction.customId.startsWith('poll_')) {
+                // Polls don't have DB persistence in "Quick Win" mode, so we just acknowledge
+                const choice = interaction.customId.split('_')[1];
+                const emojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣'];
+                // Ephemeral reply to confirm vote
+                return interaction.reply({ content: `✅ You voted for Option ${emojis[choice]}`, ephemeral: true });
+            }
+
+            // --- Suggestion System ---
+            if (interaction.customId === 'suggest_up' || interaction.customId === 'suggest_down') {
+                await handleSuggestionVote(interaction);
+            }
+
+            // --- Reaction Role System ---
+            if (interaction.customId.startsWith('role_')) {
+                const roleId = interaction.customId.split('_')[1];
+                const role = interaction.guild.roles.cache.get(roleId);
+                const member = interaction.member;
+
+                if (!role) {
+                    return interaction.reply({ content: '❌ Role not found (maybe deleted?).', ephemeral: true });
+                }
+
+                try {
+                    if (member.roles.cache.has(roleId)) {
+                        await member.roles.remove(roleId);
+                        return interaction.reply({ content: `➖ Removed **${role.name}** role.`, ephemeral: true });
+                    } else {
+                        await member.roles.add(roleId);
+                        return interaction.reply({ content: `➕ Added **${role.name}** role.`, ephemeral: true });
+                    }
+                } catch (err) {
+                    return interaction.reply({ content: '❌ I cannot manage this role (permission issue).', ephemeral: true });
+                }
+            }
+
             return;
         }
 

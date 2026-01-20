@@ -52,6 +52,21 @@ const GuildSchema = new mongoose.Schema({
         message: { type: String, default: 'Welcome {user} to {server}!' },
         autoRoleId: { type: String }
     },
+    // Voice Module (Auto-VC)
+    voiceConfig: {
+        joinToCreateChannelId: { type: String }, // The "Master" voice channel
+        categoryTargetId: { type: String } // Category to spawn new VCs in
+    },
+    // Reaction Roles (Array of configs)
+    reactionRoles: [{
+        messageId: String,
+        channelId: String,
+        roles: [{
+            emoji: String,
+            roleId: String,
+            label: String
+        }]
+    }],
     // Store active subscriptions or premium status
     isPremium: { type: Boolean, default: false },
 

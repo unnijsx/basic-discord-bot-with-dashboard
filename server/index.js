@@ -152,6 +152,7 @@ app.use('/api/stats', require('./src/routes/analytics'));
 app.use('/api/music', musicRoutes);
 app.use('/api/admin', require('./src/routes/admin'));
 app.use('/api/tickets', require('./src/routes/tickets'));
+app.use('/api/economy', require('./src/routes/economy'));
 
 // Database Connection
 mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/discord-bot-platform', { family: 4 })

@@ -15,7 +15,11 @@ import {
     CalendarOutlined,
     MenuOutlined,
     DeploymentUnitOutlined,
-    ThunderboltOutlined
+    ThunderboltOutlined,
+    DollarOutlined,
+    UsergroupAddOutlined,
+    DiffOutlined,
+    BulbOutlined
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation, useParams } from 'react-router-dom';
 import styled from 'styled-components';
