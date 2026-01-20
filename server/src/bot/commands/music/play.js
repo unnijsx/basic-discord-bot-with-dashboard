@@ -94,12 +94,22 @@ module.exports = {
 
                 // Event Listeners for Queue
                 player.on('end', async () => {
+                    const wasPaused = player.paused; // Capture pause state before track switch? Actually, new track starts unpaused invariably unless we force it. Shoukaku resets?
+
+                    // Check Loop
+                    if (guildQueue.loop && guildQueue.current) {
+                        // Replay Current
+                        await player.playTrack({ track: { encoded: guildQueue.current.encoded } });
+                        if (wasPaused) await player.setPaused(true);
+                        client.io?.to(interaction.guild.id).emit('playerUpdate', { isPlaying: !wasPaused });
+                        return; // Don't shift queue
+                    }
+
                     const nextTrack = guildQueue.tracks.shift();
                     if (nextTrack) {
                         guildQueue.current = nextTrack;
-                        const wasPaused = player.paused;
                         await player.playTrack({ track: { encoded: nextTrack.encoded } });
-                        if (wasPaused) await player.setPaused(true);
+                        if (wasPaused) await player.setPaused(true); // Persist pause state if needed? or usually next song should play? Standard behavior: play next song.
 
                         client.io?.to(interaction.guild.id).emit('playerUpdate', { isPlaying: !wasPaused });
                         client.io?.to(interaction.guild.id).emit('queueUpdate');

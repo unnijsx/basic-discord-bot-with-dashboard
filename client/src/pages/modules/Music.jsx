@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Card, Typography, Button, Space, List, Avatar, Spin, message, Tag, Slider, Input, Row, Col, Alert, Tabs, Badge } from 'antd';
+import { Card, Typography, Button, Space, List, Avatar, Spin, message, Tag, Slider, Input, Row, Col, Alert, Tabs, Badge, Switch, Tooltip } from 'antd';
 import {
     CustomerServiceOutlined,
     PauseCircleFilled,
@@ -290,47 +290,62 @@ const Music = () => {
 
                         {/* 2. BUTTONS + VOLUME */}
                         <ButtonsRow>
-                            <div style={{ width: 150 }}>
-                                {/* Placeholder for left side actions like Shuffle/Loop */}
-                                <Button type="text" icon={<RetweetOutlined />} style={{ color: 'rgba(255,255,255,0.5)' }} />
+                            <div style={{ width: 150, display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>8D Effect</Text>
+                                <Switch
+                                    checked={!!status.filters?.rotation}
+                                    onChange={(checked) => handleAction('8d', { enabled: checked })}
+                                    style={{ background: status.filters?.rotation ? '#5865F2' : 'rgba(255,255,255,0.2)' }}
+                                />
                             </div>
 
                             <MainButtons>
-                                <Button
-                                    type="text"
-                                    shape="circle"
-                                    icon={<PlayCircleFilled style={{ fontSize: 24 }} rotate={180} />}
-                                    size="large"
-                                    style={{ color: '#fff' }}
-                                // Prev not implemented yet
-                                />
-                                {status.isPlaying ? (
-                                    <Button
-                                        type="primary"
-                                        shape="circle"
-                                        icon={<PauseCircleFilled style={{ fontSize: 32 }} />}
-                                        size="large"
-                                        style={{ width: 64, height: 64, background: '#fff', color: '#000', border: 'none' }}
-                                        onClick={() => handleAction('pause')}
-                                    />
-                                ) : (
-                                    <Button
-                                        type="primary"
-                                        shape="circle"
-                                        icon={<PlayCircleFilled style={{ fontSize: 32 }} />}
-                                        size="large"
-                                        style={{ width: 64, height: 64, background: '#fff', color: '#000', border: 'none' }}
-                                        onClick={() => handleAction('resume')}
-                                    />
-                                )}
-                                <Button
-                                    type="text"
-                                    shape="circle"
-                                    icon={<StepForwardFilled style={{ fontSize: 24 }} />}
-                                    size="large"
-                                    style={{ color: '#fff' }}
-                                    onClick={() => handleAction('skip')}
-                                />
+                                <MainButtons>
+                                    <Tooltip title={status.loop ? "Disable Loop" : "Enable Loop"}>
+                                        <Button
+                                            type="text"
+                                            shape="circle"
+                                            icon={<RetweetOutlined style={{ fontSize: 24, color: status.loop ? '#5865F2' : '#fff' }} />}
+                                            size="large"
+                                            onClick={() => handleAction('toggleLoop')}
+                                        />
+                                    </Tooltip>
+
+                                    {status.isPlaying ? (
+                                        <Tooltip title="Pause">
+                                            <Button
+                                                type="primary"
+                                                shape="circle"
+                                                icon={<PauseCircleFilled style={{ fontSize: 32 }} />}
+                                                size="large"
+                                                style={{ width: 64, height: 64, background: '#fff', color: '#000', border: 'none' }}
+                                                onClick={() => handleAction('pause')}
+                                            />
+                                        </Tooltip>
+                                    ) : (
+                                        <Tooltip title="Play">
+                                            <Button
+                                                type="primary"
+                                                shape="circle"
+                                                icon={<PlayCircleFilled style={{ fontSize: 32 }} />}
+                                                size="large"
+                                                style={{ width: 64, height: 64, background: '#fff', color: '#000', border: 'none' }}
+                                                onClick={() => handleAction('resume')}
+                                            />
+                                        </Tooltip>
+                                    )}
+
+                                    <Tooltip title="Skip Track">
+                                        <Button
+                                            type="text"
+                                            shape="circle"
+                                            icon={<StepForwardFilled style={{ fontSize: 24 }} />}
+                                            size="large"
+                                            style={{ color: '#fff' }}
+                                            onClick={() => handleAction('skip')}
+                                        />
+                                    </Tooltip>
+                                </MainButtons>
                             </MainButtons>
 
                             <VolumeParam>

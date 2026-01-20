@@ -63,7 +63,9 @@ router.get('/:guildId/status', checkAuth, (req, res) => {
             thumbnail: currentTrack.artworkUrl || '',
             url: currentTrack.uri
         } : null,
-        queue: queue
+        queue: queue,
+        filters: player.filters,
+        loop: !!guildQueue?.loop
     });
 });
 
@@ -200,6 +202,22 @@ router.post('/:guildId/control', checkAuth, async (req, res) => {
                 break;
             case 'volume':
                 if (typeof volume === 'number') player?.setGlobalVolume(volume);
+                break;
+            case 'toggleLoop':
+                if (guildQueue) {
+                    guildQueue.loop = !guildQueue.loop;
+                    req.io.to(guildId).emit('playerUpdate', { loop: guildQueue.loop });
+                }
+                break;
+            case '8d':
+                if (req.body.enabled) {
+                    player?.setFilters({
+                        rotation: { rotationHz: 0.2 }
+                    });
+                } else {
+                    player?.clearFilters();
+                }
+                req.io.to(guildId).emit('playerUpdate', { filters: req.body.enabled ? { rotation: true } : {} });
                 break;
             default:
                 return res.status(400).json({ message: 'Invalid action' });
