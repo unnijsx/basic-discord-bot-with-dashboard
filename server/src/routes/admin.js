@@ -4,8 +4,9 @@ const Guild = require('../models/Guild');
 
 // Middleware to check if user is Super Admin
 const requireSuperAdmin = (req, res, next) => {
-    const superAdmins = (process.env.SUPER_ADMIN_IDS || '').split(',');
-    if (req.user && superAdmins.includes(req.user.id)) {
+    const superAdmins = (process.env.SUPER_ADMIN_IDS || '').split(',').map(id => id.trim());
+    // Use discordId from the user model, not the mongo _id
+    if (req.user && superAdmins.includes(req.user.discordId)) {
         return next();
     }
     return res.status(403).json({ message: 'Forbidden: Super Admins only' });
@@ -65,21 +66,30 @@ router.put('/system-config', async (req, res) => {
 // GET Global Stats
 router.get('/stats', async (req, res) => {
     try {
-        const guildCount = await Guild.countDocuments();
-        const maintenanceGuilds = await Guild.countDocuments({ maintenanceMode: true });
-
-        // Use bot client to get real-time stats (if available in req)
         const client = req.botClient;
-        const ping = client ? client.ws.ping : -1;
+
+        // Real-time stats from Bot Client
+        const guildCount = client ? client.guilds.cache.size : 0;
+        const users = client ? client.guilds.cache.reduce((acc, g) => acc + g.memberCount, 0) : 0;
+        const ping = client ? Math.round(client.ws.ping) : -1;
         const uptime = client ? client.uptime : 0;
-        const users = client ? client.users.cache.size : 0;
+
+        // Get list of servers
+        const serverList = client ? client.guilds.cache.map(g => ({
+            id: g.id,
+            name: g.name,
+            icon: g.icon,
+            memberCount: g.memberCount,
+            joinedAt: g.joinedAt,
+            ownerId: g.ownerId
+        })) : [];
 
         res.json({
             guildCount,
-            maintenanceGuilds,
+            users,
             ping,
             uptime,
-            users
+            servers: serverList
         });
     } catch (err) {
         res.status(500).json({ error: err.message });
