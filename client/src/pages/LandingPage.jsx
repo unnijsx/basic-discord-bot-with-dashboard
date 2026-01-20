@@ -44,6 +44,7 @@ const PageWrapper = styled.div`
   font-family: 'Inter', sans-serif;
   overflow: hidden;
   position: relative;
+  will-change: transform; // Hint for GPU acceleration
 `;
 
 const AuroraBackground = styled.div`
@@ -57,7 +58,12 @@ const AuroraBackground = styled.div`
   // animation: ${aurora} 60s linear infinite;
   z-index: 0;
   pointer-events: none;
-  display: none; // Hide aurora to let video shine, or keep transparent
+  display: none; // Default hidden, relying on video background for main effect
+  
+  @media (min-width: 769px) {
+    // Only enable if explicitly needed, otherwise keep hidden to save resources
+    // display: block; 
+  }
 `;
 
 const Navbar = styled.nav`
@@ -220,8 +226,12 @@ const LandingPage = () => {
       }
     };
 
-    // Start loop after initial delay
-    timeout = setTimeout(showRandomCard, 2000);
+    // Start loop after initial delay, only if not mobile
+    const isMobile = window.innerWidth <= 768;
+    if (!isMobile) {
+      timeout = setTimeout(showRandomCard, 2000);
+    }
+
     return () => clearTimeout(timeout);
   }, []);
 
