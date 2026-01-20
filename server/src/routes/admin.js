@@ -144,7 +144,7 @@ router.delete('/broadcast', async (req, res) => {
     }
 });
 
-const User = require('../models/User');
+// User import moved to top
 
 // USER MANAGEMENT
 // GET /admin/users?search=query
