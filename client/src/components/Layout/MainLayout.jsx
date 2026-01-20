@@ -219,9 +219,23 @@ const MainLayout = () => {
                         )}
                     </div>
 
-                    <Dropdown menu={menuProps} placement="bottomRight">
-                        <Avatar style={{ backgroundColor: token.colorPrimary, cursor: 'pointer' }}>A</Avatar>
-                    </Dropdown>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        {user && (
+                            <div style={{ textAlign: 'right', marginRight: 8, display: isMobile ? 'none' : 'block' }}>
+                                <div style={{ color: '#fff', fontWeight: 600, fontSize: 14 }}>{user.globalName || user.username}</div>
+                                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>{user.globalName ? user.username : `#${user.discriminator}`}</div>
+                            </div>
+                        )}
+                        <Dropdown menu={menuProps} placement="bottomRight">
+                            <Avatar
+                                src={user?.avatar ? `https://cdn.discordapp.com/avatars/${user.discordId}/${user.avatar}.png` : undefined}
+                                style={{ backgroundColor: token.colorPrimary, cursor: 'pointer', border: '2px solid rgba(255,255,255,0.1)' }}
+                                size="large"
+                            >
+                                {user?.globalName ? user.globalName.charAt(0) : user?.username?.charAt(0)}
+                            </Avatar>
+                        </Dropdown>
+                    </div>
                 </StyledHeader>
                 <Content style={{ margin: '24px 16px', padding: 24, minHeight: 280, overflow: 'initial' }}>
                     <Outlet />

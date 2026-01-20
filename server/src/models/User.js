@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const UserSchema = new mongoose.Schema({
     discordId: { type: String, required: true, unique: true },
     username: { type: String, required: true },
+    globalName: { type: String }, // Display Name
     discriminator: { type: String },
     avatar: { type: String },
     accessToken: { type: String },

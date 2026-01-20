@@ -28,6 +28,7 @@ passport.use(new DiscordStrategy({
             user.refreshToken = refreshToken;
             user.avatar = profile.avatar;
             user.username = profile.username;
+            user.globalName = profile.global_name || profile.username;
             user.discriminator = profile.discriminator;
             await user.save();
             return done(null, user);
@@ -36,6 +37,7 @@ passport.use(new DiscordStrategy({
         const newUser = new User({
             discordId: profile.id,
             username: profile.username,
+            globalName: profile.global_name || profile.username,
             discriminator: profile.discriminator,
             avatar: profile.avatar,
             accessToken: accessToken,
