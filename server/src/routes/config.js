@@ -3,6 +3,30 @@ const router = express.Router();
 
 const SystemConfig = require('../models/SystemConfig');
 
+router.get('/', async (req, res) => {
+    try {
+        let config = await SystemConfig.findById('GLOBAL');
+        // If no config exists, return defaults (or empty object, frontend handles defaults)
+        if (!config) {
+            return res.json({
+                moduleTiers: {
+                    music: 'premium',
+                    embedBuilder: 'premium',
+                    forms: 'premium',
+                    tickets: 'free',
+                    moderation: 'free',
+                    leveling: 'free',
+                    logging: 'free',
+                    analytics: 'free'
+                }
+            });
+        }
+        res.json(config);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 router.get('/branding', async (req, res) => {
     try {
         let config = await SystemConfig.findById('GLOBAL');

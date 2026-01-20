@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import { useParams } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import i18n from '../i18n';
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
@@ -99,6 +100,12 @@ const Settings = () => {
             await api.put(`/guilds/${guildId}/settings`, values, {
                 headers: { Authorization: `Bearer ${token}` }
             });
+
+            // Update local language immediately for better UX
+            if (values.language) {
+                i18n.changeLanguage(values.language);
+                localStorage.setItem('i18nextLng', values.language);
+            }
 
             notificationApi.success({
                 message: 'Settings Saved',
