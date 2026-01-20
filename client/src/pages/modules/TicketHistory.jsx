@@ -46,7 +46,7 @@ const TicketHistory = () => {
     const fetchHistory = async () => {
         setLoading(true);
         try {
-            const res = await api.get(`/guilds/${guildId}/tickets/history`);
+            const res = await api.get(`/tickets/${guildId}/history`);
             setTickets(res.data);
         } catch (error) {
             console.error(error);
@@ -61,7 +61,7 @@ const TicketHistory = () => {
         setViewOpen(true);
         setMsgLoading(true);
         try {
-            const res = await api.get(`/guilds/${guildId}/tickets/${ticket._id}`);
+            const res = await api.get(`/tickets/${guildId}/transcript/${ticket._id}`);
             setMessages(res.data.messages || []);
         } catch (error) {
             message.error('Failed to load transcript');

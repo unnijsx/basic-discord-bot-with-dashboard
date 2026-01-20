@@ -31,6 +31,7 @@ import Maintenance from './pages/Maintenance';
 import api from './api/axios';
 
 import Features from './pages/Features';
+import Leaderboard from './pages/public/Leaderboard';
 
 const App = () => {
   const [maintenance, setMaintenance] = React.useState(null);
@@ -106,6 +107,7 @@ const RouterWrapper = ({ maintenance, setMaintenance }) => {
         <Route path="/login" element={<Login />} />
         <Route path="/about" element={<About />} />
         <Route path="/support" element={<Support />} />
+        <Route path="/leaderboard/:guildId" element={<Leaderboard />} />
 
         {/* Protected Routes */}
         <Route path="/dashboard" element={<ProtectedRoute><ServerSelector /></ProtectedRoute>} />

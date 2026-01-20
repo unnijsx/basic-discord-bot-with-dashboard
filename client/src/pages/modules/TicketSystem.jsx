@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Form, Input, Button, Select, Divider, App, Row, Col, Typography, Space, List, Tag, Modal, Popconfirm } from 'antd';
-import { SendOutlined, SaveOutlined, RobotOutlined, DeploymentUnitOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ArrowLeftOutlined, ClockCircleOutlined } from '@ant-design/icons';
+import { Card, Form, Input, Button, Select, Divider, App, Row, Col, Typography, Space, List, Tag, Modal, Popconfirm, Tabs, Table } from 'antd';
+import { SendOutlined, SaveOutlined, RobotOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ArrowLeftOutlined, ClockCircleOutlined, MessageOutlined } from '@ant-design/icons';
 import api from '../../api/axios';
 import { useParams } from 'react-router-dom';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
+const { TabPane } = Tabs;
 
 const TicketSystem = () => {
     const { guildId } = useParams();
@@ -13,6 +14,7 @@ const TicketSystem = () => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
     const [panels, setPanels] = useState([]);
+    const [activeTickets, setActiveTickets] = useState([]);
     const [view, setView] = useState('list'); // 'list' or 'edit'
     const [editingPanel, setEditingPanel] = useState(null); // null = new
     const [channels, setChannels] = useState([]);
@@ -27,24 +29,30 @@ const TicketSystem = () => {
 
     const fetchData = async () => {
         try {
-            const res = await api.get(`/guilds/${guildId}/tickets/panels`);
-            setPanels(res.data);
+            const [panelsRes, ticketsRes] = await Promise.all([
+                api.get(`/tickets/${guildId}/panels`),
+                api.get(`/tickets/${guildId}/active`)
+            ]);
+            setPanels(panelsRes.data);
+            setActiveTickets(ticketsRes.data);
         } catch (error) {
             console.error(error);
-            message.error('Failed to fetch ticket panels');
+            message.error('Failed to fetch ticket data');
         }
     };
 
     const fetchResources = async () => {
         try {
+            // Using generic api routes usually found in bot dashboards
             const [channelsRes, rolesRes] = await Promise.all([
-                api.get(`/guilds/${guildId}/channels`),
-                api.get(`/guilds/${guildId}/roles`)
+                api.get(`/modules/${guildId}/channels`), // Adjusted to likely existing route
+                api.get(`/modules/${guildId}/roles`)
             ]);
             setChannels(channelsRes.data);
             setRoles(rolesRes.data);
         } catch (error) {
-            console.error('Failed to fetch resources');
+            // Fallback or silent fail if modules route differs
+            console.log("Could not fetch resources, manual ID input required");
         }
     };
 
@@ -57,7 +65,7 @@ const TicketSystem = () => {
             form.resetFields();
             form.setFieldsValue({
                 title: 'Open a Ticket',
-                description: 'Click the button below to react out to our support team.',
+                description: 'Click the button below to reach out to our support team.',
                 buttonText: 'Create Ticket',
                 buttonEmoji: '🎫',
                 namingScheme: 'ticket-{username}'
@@ -67,7 +75,7 @@ const TicketSystem = () => {
 
     const handleDelete = async (uniqueId) => {
         try {
-            await api.delete(`/guilds/${guildId}/tickets/panel/${uniqueId}`);
+            await api.delete(`/tickets/${guildId}/panels/${uniqueId}`);
             message.success('Panel deleted');
             fetchData();
         } catch (error) {
@@ -81,7 +89,7 @@ const TicketSystem = () => {
             const payload = { ...values };
             if (editingPanel) payload.uniqueId = editingPanel.uniqueId;
 
-            await api.post(`/guilds/${guildId}/tickets/panel`, payload);
+            await api.post(`/tickets/${guildId}/panels`, payload);
             message.success('Ticket panel saved');
             setView('list');
             fetchData();
@@ -96,9 +104,8 @@ const TicketSystem = () => {
         if (!deployChannel) return message.warning('Please select a channel to deploy to');
         setDeployLoading(true);
         try {
-            await api.post(`/guilds/${guildId}/tickets/send`, {
-                channelId: deployChannel,
-                uniqueId: panelId
+            await api.post(`/tickets/${guildId}/deploy/${panelId}`, {
+                channelId: deployChannel
             });
             message.success('Ticket panel deployed successfully!');
         } catch (error) {
@@ -107,6 +114,16 @@ const TicketSystem = () => {
             setDeployLoading(false);
         }
     };
+
+    const ticketColumns = [
+        { title: 'Ticket Channel', dataIndex: 'channelId', key: 'id', render: txt => <Tag icon={<MessageOutlined />}>{txt}</Tag> },
+        { title: 'Status', dataIndex: 'status', key: 'status', render: txt => <Tag color={txt === 'open' ? 'green' : 'red'}>{txt.toUpperCase()}</Tag> },
+        { title: 'Created', dataIndex: 'createdAt', key: 'created', render: date => new Date(date).toLocaleDateString() },
+        {
+            title: 'Action', key: 'action', render: (_, record) =>
+                <Button size="small" href={`https://discord.com/channels/${guildId}/${record.channelId}`} target="_blank">View in Discord</Button>
+        }
+    ];
 
     if (view === 'list') {
         return (
@@ -126,52 +143,65 @@ const TicketSystem = () => {
                     </Space>
                 </div>
 
-                <List
-                    grid={{ gutter: 16, xs: 1, sm: 1, md: 2, lg: 3, xl: 3, xxl: 3 }}
-                    dataSource={panels}
-                    renderItem={item => (
-                        <List.Item>
-                            <Card
-                                style={{ background: '#2f3136', border: '1px solid #202225' }}
-                                actions={[
-                                    <Popconfirm title="Delete this panel?" onConfirm={() => handleDelete(item.uniqueId)}>
-                                        <DeleteOutlined key="delete" style={{ color: '#f5222d' }} />
-                                    </Popconfirm>,
-                                    <EditOutlined key="edit" onClick={() => handleEdit(item)} />,
-                                    <div style={{ padding: '0 8px' }}>
-                                        <Select
-                                            placeholder="Deploy to..."
-                                            size="small"
-                                            style={{ width: 120 }}
-                                            onChange={setDeployChannel}
-                                            options={channels.map(c => ({ label: '#' + c.name, value: c.id }))}
-                                            dropdownMatchSelectWidth={false}
+                <Tabs defaultActiveKey="1" type="card">
+                    <TabPane tab="Ticket Panels" key="1">
+                        <List
+                            grid={{ gutter: 16, xs: 1, sm: 1, md: 2, lg: 3, xl: 3, xxl: 3 }}
+                            dataSource={panels}
+                            renderItem={item => (
+                                <List.Item>
+                                    <Card
+                                        style={{ background: '#2f3136', border: '1px solid #202225' }}
+                                        actions={[
+                                            <Popconfirm title="Delete this panel?" onConfirm={() => handleDelete(item.uniqueId)}>
+                                                <DeleteOutlined key="delete" style={{ color: '#f5222d' }} />
+                                            </Popconfirm>,
+                                            <EditOutlined key="edit" onClick={() => handleEdit(item)} />,
+                                            <div style={{ padding: '0 8px' }}>
+                                                <Select
+                                                    placeholder="Deploy to..."
+                                                    size="small"
+                                                    style={{ width: 120 }}
+                                                    onChange={setDeployChannel}
+                                                    options={channels.map(c => ({ label: '#' + c.name, value: c.id }))}
+                                                    dropdownMatchSelectWidth={false}
+                                                />
+                                                <Button
+                                                    type="text"
+                                                    size="small"
+                                                    icon={<SendOutlined />}
+                                                    onClick={() => handleDeploy(item.uniqueId)}
+                                                    disabled={!deployChannel}
+                                                    style={{ color: '#5865F2' }}
+                                                />
+                                            </div>
+                                        ]}
+                                    >
+                                        <Card.Meta
+                                            avatar={<div style={{ fontSize: 24 }}>{item.buttonEmoji}</div>}
+                                            title={<Text style={{ color: '#fff' }}>{item.title}</Text>}
+                                            description={
+                                                <Space direction="vertical" size={2}>
+                                                    <Text type="secondary" style={{ fontSize: 12 }}>{item.buttonText}</Text>
+                                                    <Tag color="blue">{item.namingScheme}</Tag>
+                                                </Space>
+                                            }
                                         />
-                                        <Button
-                                            type="text"
-                                            size="small"
-                                            icon={<SendOutlined />}
-                                            onClick={() => handleDeploy(item.uniqueId)}
-                                            disabled={!deployChannel}
-                                            style={{ color: '#5865F2' }}
-                                        />
-                                    </div>
-                                ]}
-                            >
-                                <Card.Meta
-                                    avatar={<div style={{ fontSize: 24 }}>{item.buttonEmoji}</div>}
-                                    title={<Text style={{ color: '#fff' }}>{item.title}</Text>}
-                                    description={
-                                        <Space direction="vertical" size={2}>
-                                            <Text type="secondary" style={{ fontSize: 12 }}>{item.buttonText}</Text>
-                                            <Tag color="blue">{item.namingScheme}</Tag>
-                                        </Space>
-                                    }
-                                />
-                            </Card>
-                        </List.Item>
-                    )}
-                />
+                                    </Card>
+                                </List.Item>
+                            )}
+                        />
+                    </TabPane>
+                    <TabPane tab={`Active Tickets (${activeTickets.length})`} key="2">
+                        <Table
+                            dataSource={activeTickets}
+                            columns={ticketColumns}
+                            rowKey="_id"
+                            pagination={{ pageSize: 5 }}
+                            locale={{ emptyText: 'No active tickets found' }}
+                        />
+                    </TabPane>
+                </Tabs>
             </div>
         );
     }

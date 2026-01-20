@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const SystemConfig = require('../models/SystemConfig');
 const Guild = require('../models/Guild');
+const User = require('../models/User');
 
 // Middleware to check if user is Super Admin
 const requireSuperAdmin = (req, res, next) => {
