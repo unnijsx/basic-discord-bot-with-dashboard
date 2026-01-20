@@ -221,6 +221,37 @@ const LandingPage = () => {
     }
   ];
 
+
+
+  /* Notification Logic */
+  const [activeCard, setActiveCard] = React.useState(null); // 0 for Member, 1 for Music, null for none
+
+  useEffect(() => {
+    let timeout;
+
+    const showRandomCard = () => {
+      // 30% chance to show nothing, 35% chance for card 0, 35% for card 1
+      const rand = Math.random();
+      if (rand < 0.3) {
+        setActiveCard(null);
+        timeout = setTimeout(showRandomCard, 2000); // Check again soon
+      } else {
+        const cardIndex = rand < 0.65 ? 0 : 1;
+        setActiveCard(cardIndex);
+        // Show for 5-8 seconds
+        timeout = setTimeout(() => {
+          setActiveCard(null);
+          // Wait 3-10 seconds before potentially showing another
+          timeout = setTimeout(showRandomCard, Math.random() * 7000 + 3000);
+        }, Math.random() * 3000 + 5000);
+      }
+    };
+
+    // Start loop after initial delay
+    timeout = setTimeout(showRandomCard, 2000);
+    return () => clearTimeout(timeout);
+  }, []);
+
   return (
     <PageWrapper>
       <GlobalStyle />
@@ -228,168 +259,132 @@ const LandingPage = () => {
 
       <PremiumNavbar />
 
-  /* Notification Logic */
-      const [activeCard, setActiveCard] = React.useState(null); // 0 for Member, 1 for Music, null for none
-
-  useEffect(() => {
-        let timeout;
-    
-    const showRandomCard = () => {
-      // 30% chance to show nothing, 35% chance for card 0, 35% for card 1
-      const rand = Math.random();
-      if (rand < 0.3) {
-        setActiveCard(null);
-      timeout = setTimeout(showRandomCard, 2000); // Check again soon
-      } else {
-        const cardIndex = rand < 0.65 ? 0 : 1;
-      setActiveCard(cardIndex);
-        // Show for 5-8 seconds
-        timeout = setTimeout(() => {
-        setActiveCard(null);
-      // Wait 3-10 seconds before potentially showing another
-      timeout = setTimeout(showRandomCard, Math.random() * 7000 + 3000);
-        }, Math.random() * 3000 + 5000);
-      }
-    };
-
-      // Start loop after initial delay
-      timeout = setTimeout(showRandomCard, 2000);
-    return () => clearTimeout(timeout);
-  }, []);
-
-      return (
-      <PageWrapper>
-        <GlobalStyle />
-        <AuroraBackground />
-
-        <PremiumNavbar />
-
-        {/* Decorative Floating Elements - Now Controlled by State */}
-        <FloatingCard
-          style={{
-            top: '20%',
-            left: '10%',
-            opacity: activeCard === 0 ? 1 : 0,
-            transform: activeCard === 0 ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.9)',
-            transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-            pointerEvents: activeCard === 0 ? 'auto' : 'none'
-          }}
-        >
-          <Space>
-            <Avatar style={{ backgroundColor: '#5865F2' }} icon={<DiscordOutlined />} />
-            <div>
-              <Text strong style={{ color: '#fff' }}>New Member</Text><br />
-              <Text type="secondary" style={{ fontSize: 12 }}>Just joined the server!</Text>
-            </div>
-          </Space>
-        </FloatingCard>
-
-        <FloatingCard
-          style={{
-            bottom: '20%',
-            right: '10%',
-            opacity: activeCard === 1 ? 1 : 0,
-            transform: activeCard === 1 ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.9)',
-            transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-            pointerEvents: activeCard === 1 ? 'auto' : 'none'
-          }}
-        >
-          <Space>
-            <CustomerServiceOutlined style={{ fontSize: 24, color: '#eb459e' }} />
-            <div>
-              <Text strong style={{ color: '#fff' }}>Now Playing</Text><br />
-              <Text type="secondary" style={{ fontSize: 12 }}>Lofi Hip Hop - 24/7</Text>
-            </div>
-          </Space>
-        </FloatingCard>
-
-        <HeroSection>
-          <FadeInDiv>
-            <div style={{ marginBottom: 20 }}>
-              <span style={{
-                padding: '8px 16px',
-                background: 'rgba(88, 101, 242, 0.1)',
-                border: '1px solid rgba(88, 101, 242, 0.3)',
-                borderRadius: 20,
-                color: '#5865F2',
-                fontWeight: 600,
-                fontSize: 14
-              }}>
-                ✨ V2.0 is live with Advanced Analytics
-              </span>
-            </div>
-            <Title style={{ fontSize: 'clamp(2.5rem, 5vw, 5rem)', margin: '20px 0', color: '#fff', lineHeight: 1.1, padding: '0 10px' }}>
-              Rheox <GradientText>Development</GradientText>
-            </Title>
-            <Paragraph style={{ fontSize: 'clamp(1rem, 1.5vw, 1.25rem)', color: '#b9bbbe', margin: '0 auto 40px auto', maxWidth: 600, lineHeight: 1.6, padding: '0 20px' }}>
-              Elevate your Discord server with advanced automation, crystal-clear music, and powerful moderation tools. Join the revolution today.
-            </Paragraph>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 20, flexWrap: 'wrap' }}>
-              <CtaButton type="primary" size="large" onClick={handleCta}>
-                {user ? 'Open Dashboard' : 'Add to Discord'} <RightOutlined />
-              </CtaButton>
-              <Button size="large" onClick={() => navigate('/features')} style={{
-                height: 60,
-                padding: '0 40px',
-                fontSize: '1.2rem',
-                borderRadius: '30px',
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                color: '#fff'
-              }}>
-                View Features
-              </Button>
-            </div>
-          </FadeInDiv>
-        </HeroSection>
-
-        <FeatureGrid>
-          <Title level={2} style={{ textAlign: 'center', color: '#fff', marginBottom: 60 }}>
-            Power-packed Modules
-          </Title>
-          <Row gutter={[32, 32]}>
-            {features.map((f, i) => (
-              <Col xs={24} md={8} key={i}>
-                <ModernCard bordered={false}>
-                  <div style={{ marginBottom: 24, transition: 'transform 0.3s' }} className="icon-wrapper">
-                    {f.icon}
-                  </div>
-                  <Title level={4} style={{ color: '#fff' }}>{f.title}</Title>
-                  <Paragraph style={{ color: '#b9bbbe' }}>{f.desc}</Paragraph>
-                </ModernCard>
-              </Col>
-            ))}
-          </Row>
-        </FeatureGrid>
-
-        <div style={{ padding: '60px 20px', background: 'rgba(255, 255, 255, 0.02)' }}>
-          <Title level={2} style={{ textAlign: 'center', color: '#fff', marginBottom: 40 }}>
-            Join Our Community
-          </Title>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '30px', flexWrap: 'wrap' }}>
-            <a href="https://discord.gg/gyQh6KaSbp" target="_blank" rel="noopener noreferrer">
-              <Button size="large" shape="circle" icon={<DiscordOutlined />} style={{ width: 60, height: 60, fontSize: 24, background: '#5865F2', border: 'none', color: '#fff' }} />
-            </a>
-            <a href="https://instagram.com/u/rheox_" target="_blank" rel="noopener noreferrer">
-              <Button size="large" shape="circle" icon={<InstagramOutlined />} style={{ width: 60, height: 60, fontSize: 24, background: 'linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%)', border: 'none', color: '#fff' }} />
-            </a>
+      {/* Decorative Floating Elements - Now Controlled by State */}
+      <FloatingCard
+        style={{
+          top: '20%',
+          left: '10%',
+          opacity: activeCard === 0 ? 1 : 0,
+          transform: activeCard === 0 ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.9)',
+          transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+          pointerEvents: activeCard === 0 ? 'auto' : 'none'
+        }}
+      >
+        <Space>
+          <Avatar style={{ backgroundColor: '#5865F2' }} icon={<DiscordOutlined />} />
+          <div>
+            <Text strong style={{ color: '#fff' }}>New Member</Text><br />
+            <Text type="secondary" style={{ fontSize: 12 }}>Just joined the server!</Text>
           </div>
-          <Paragraph style={{ textAlign: 'center', color: '#888', marginTop: 20 }}>
-            Stay updated with the latest features and announcements.
+        </Space>
+      </FloatingCard>
+
+      <FloatingCard
+        style={{
+          bottom: '20%',
+          right: '10%',
+          opacity: activeCard === 1 ? 1 : 0,
+          transform: activeCard === 1 ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.9)',
+          transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+          pointerEvents: activeCard === 1 ? 'auto' : 'none'
+        }}
+      >
+        <Space>
+          <CustomerServiceOutlined style={{ fontSize: 24, color: '#eb459e' }} />
+          <div>
+            <Text strong style={{ color: '#fff' }}>Now Playing</Text><br />
+            <Text type="secondary" style={{ fontSize: 12 }}>Lofi Hip Hop - 24/7</Text>
+          </div>
+        </Space>
+      </FloatingCard>
+
+      <HeroSection>
+        <FadeInDiv>
+          <div style={{ marginBottom: 20 }}>
+            <span style={{
+              padding: '8px 16px',
+              background: 'rgba(88, 101, 242, 0.1)',
+              border: '1px solid rgba(88, 101, 242, 0.3)',
+              borderRadius: 20,
+              color: '#5865F2',
+              fontWeight: 600,
+              fontSize: 14
+            }}>
+              ✨ V2.0 is live with Advanced Analytics
+            </span>
+          </div>
+          <Title style={{ fontSize: 'clamp(2.5rem, 5vw, 5rem)', margin: '20px 0', color: '#fff', lineHeight: 1.1, padding: '0 10px' }}>
+            Rheox <GradientText>Development</GradientText>
+          </Title>
+          <Paragraph style={{ fontSize: 'clamp(1rem, 1.5vw, 1.25rem)', color: '#b9bbbe', margin: '0 auto 40px auto', maxWidth: 600, lineHeight: 1.6, padding: '0 20px' }}>
+            Elevate your Discord server with advanced automation, crystal-clear music, and powerful moderation tools. Join the revolution today.
           </Paragraph>
-        </div>
-
-        <div style={{ padding: '80px 20px', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', background: '#050505' }}>
-          <Title level={3} style={{ color: '#fff' }}>Ready to transform your server?</Title>
-          <Button type="primary" size="large" shape="round" style={{ marginTop: 20, height: 50, padding: '0 40px' }} onClick={handleCta}>
-            Get Started Now
-          </Button>
-          <div style={{ marginTop: 60, color: '#444' }}>
-            &copy; 2026 Rheox Bot. All rights reserved.
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 20, flexWrap: 'wrap' }}>
+            <CtaButton type="primary" size="large" onClick={handleCta}>
+              {user ? 'Open Dashboard' : 'Add to Discord'} <RightOutlined />
+            </CtaButton>
+            <Button size="large" onClick={() => navigate('/features')} style={{
+              height: 60,
+              padding: '0 40px',
+              fontSize: '1.2rem',
+              borderRadius: '30px',
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              color: '#fff'
+            }}>
+              View Features
+            </Button>
           </div>
+        </FadeInDiv>
+      </HeroSection>
+
+      <FeatureGrid>
+        <Title level={2} style={{ textAlign: 'center', color: '#fff', marginBottom: 60 }}>
+          Power-packed Modules
+        </Title>
+        <Row gutter={[32, 32]}>
+          {features.map((f, i) => (
+            <Col xs={24} md={8} key={i}>
+              <ModernCard bordered={false}>
+                <div style={{ marginBottom: 24, transition: 'transform 0.3s' }} className="icon-wrapper">
+                  {f.icon}
+                </div>
+                <Title level={4} style={{ color: '#fff' }}>{f.title}</Title>
+                <Paragraph style={{ color: '#b9bbbe' }}>{f.desc}</Paragraph>
+              </ModernCard>
+            </Col>
+          ))}
+        </Row>
+      </FeatureGrid>
+
+      <div style={{ padding: '60px 20px', background: 'rgba(255, 255, 255, 0.02)' }}>
+        <Title level={2} style={{ textAlign: 'center', color: '#fff', marginBottom: 40 }}>
+          Join Our Community
+        </Title>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '30px', flexWrap: 'wrap' }}>
+          <a href="https://discord.gg/gyQh6KaSbp" target="_blank" rel="noopener noreferrer">
+            <Button size="large" shape="circle" icon={<DiscordOutlined />} style={{ width: 60, height: 60, fontSize: 24, background: '#5865F2', border: 'none', color: '#fff' }} />
+          </a>
+          <a href="https://instagram.com/u/rheox_" target="_blank" rel="noopener noreferrer">
+            <Button size="large" shape="circle" icon={<InstagramOutlined />} style={{ width: 60, height: 60, fontSize: 24, background: 'linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%)', border: 'none', color: '#fff' }} />
+          </a>
         </div>
-      </PageWrapper>
-      );
+        <Paragraph style={{ textAlign: 'center', color: '#888', marginTop: 20 }}>
+          Stay updated with the latest features and announcements.
+        </Paragraph>
+      </div>
+
+      <div style={{ padding: '80px 20px', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', background: '#050505' }}>
+        <Title level={3} style={{ color: '#fff' }}>Ready to transform your server?</Title>
+        <Button type="primary" size="large" shape="round" style={{ marginTop: 20, height: 50, padding: '0 40px' }} onClick={handleCta}>
+          Get Started Now
+        </Button>
+        <div style={{ marginTop: 60, color: '#444' }}>
+          &copy; 2026 Rheox Bot. All rights reserved.
+        </div>
+      </div>
+    </PageWrapper>
+  );
 };
 
-      export default LandingPage;
+export default LandingPage;
