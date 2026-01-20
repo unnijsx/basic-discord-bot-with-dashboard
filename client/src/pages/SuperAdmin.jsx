@@ -100,19 +100,27 @@ const SuperAdmin = () => {
     };
 
     // USER MANAGEMENT
-    const handleUserSearch = async () => {
-        if (!userSearch) return;
+    const fetchUsers = async () => {
         setSearchingUsers(true);
         try {
-            const { data } = await axios.get(`/admin/users?search=${userSearch}`);
+            const endpoint = userSearch ? `/admin/users?search=${userSearch}` : '/admin/users';
+            const { data } = await axios.get(endpoint);
             setUserResults(data);
-            if (data.length === 0) message.info('No users found');
+            if (data.length === 0 && userSearch) message.info('No users found');
         } catch (err) {
-            message.error('Search failed');
+            message.error('Failed to fetch users');
         } finally {
             setSearchingUsers(false);
         }
     };
+
+    useEffect(() => {
+        if (selectedKey === 'users') {
+            fetchUsers();
+        }
+    }, [selectedKey]);
+
+    const handleUserSearch = fetchUsers;
 
     const togglePremium = async (userId, currentStatus) => {
         try {
