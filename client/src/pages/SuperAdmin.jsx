@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Layout, Card, Switch, Statistic, Row, Col, Input, Button, Alert, message, List, Tag, Select } from 'antd';
+import { Layout, Card, Switch, Statistic, Row, Col, Input, Button, Alert, message, List, Tag, Select, Table, Avatar, Tooltip, Space } from 'antd';
 import { ThunderboltOutlined, WarningOutlined, DatabaseOutlined, GlobalOutlined, RobotOutlined } from '@ant-design/icons';
 import axios from '../api/axios';
 import { useAuth } from '../context/AuthContext';
@@ -224,6 +224,55 @@ const SuperAdmin = () => {
                             >
                                 Broadcast Alert
                             </Button>
+                        </Card>
+                    </Col>
+                </Row>
+
+                <br />
+
+                <Row gutter={[24, 24]}>
+                    <Col span={24}>
+                        <Card title={<Space><DatabaseOutlined /> Connected Servers ({stats?.servers?.length || 0})</Space>} bordered={false}>
+                            <Table
+                                dataSource={stats?.servers || []}
+                                rowKey="id"
+                                loading={loading}
+                                pagination={{ pageSize: 5 }}
+                                columns={[
+                                    {
+                                        title: 'Icon',
+                                        dataIndex: 'icon',
+                                        key: 'icon',
+                                        render: (icon, record) => (
+                                            <Avatar src={icon ? `https://cdn.discordapp.com/icons/${record.id}/${icon}.png` : null}>{record.name[0]}</Avatar>
+                                        )
+                                    },
+                                    {
+                                        title: 'Name',
+                                        dataIndex: 'name',
+                                        key: 'name',
+                                        render: (text) => <b>{text}</b>
+                                    },
+                                    {
+                                        title: 'ID',
+                                        dataIndex: 'id',
+                                        key: 'id',
+                                        render: (text) => <Tag>{text}</Tag>
+                                    },
+                                    {
+                                        title: 'Members',
+                                        dataIndex: 'memberCount',
+                                        key: 'members',
+                                        sorter: (a, b) => a.memberCount - b.memberCount,
+                                    },
+                                    {
+                                        title: 'Joined',
+                                        dataIndex: 'joinedAt',
+                                        key: 'joinedAt',
+                                        render: (date) => new Date(date).toLocaleDateString()
+                                    }
+                                ]}
+                            />
                         </Card>
                     </Col>
                 </Row>
