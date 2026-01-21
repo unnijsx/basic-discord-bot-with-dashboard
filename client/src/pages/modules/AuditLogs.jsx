@@ -35,6 +35,27 @@ const AuditLogs = () => {
         if (!details) return <Text type="secondary">No details</Text>;
 
         switch (action.toUpperCase()) {
+            case 'MESSAGE_DELETE':
+                return (
+                    <Text>
+                        Message sent by <Text strong>{details.executorName}</Text> deleted in <Text strong>#{details.channelName}</Text>
+                        <br />
+                        <Text type="secondary" style={{ fontSize: 11 }}>Content: {details.content ? details.content.substring(0, 50) + (details.content.length > 50 ? '...' : '') : 'No content'}</Text>
+                    </Text>
+                );
+            case 'MESSAGE_UPDATE':
+                return (
+                    <Text>
+                        Message edited in <Text strong>#{details.channelName}</Text> <a href={details.url} target="_blank" rel="noopener noreferrer">[Jump]</a>
+                    </Text>
+                );
+            case 'MEMBER_JOIN':
+                return <Text>User joined the server</Text>;
+            case 'MEMBER_LEAVE':
+                return <Text>User left the server</Text>;
+            case 'VOICE_STATE':
+                return <Text dangerouslySetInnerHTML={{ __html: details }}></Text>;
+
             case 'UPDATE_SETTINGS':
                 const changes = [];
                 if (details.moderationConfig) changes.push('Moderation');

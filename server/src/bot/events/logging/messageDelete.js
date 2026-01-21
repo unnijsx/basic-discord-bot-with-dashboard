@@ -1,22 +1,19 @@
-const { Events, EmbedBuilder, AuditLogEvent } = require('discord.js');
-const { sendLog } = require('../../../utils/logger');
+const { Events } = require('discord.js');
+const { logAction } = require('../../../utils/auditLogger');
 
 module.exports = {
     name: Events.MessageDelete,
     async execute(message) {
         if (!message.guild || message.author?.bot) return;
 
-        const embed = {
-            color: 0xFF4500, // Orange Red
-            title: '🗑️ Message Deleted',
-            description: `**Message sent by ${message.author} deleted in ${message.channel}**\n${message.content || '[No Content/Image]'}`,
-            author: {
-                name: message.author.tag,
-                icon_url: message.author.displayAvatarURL()
-            }
-            // Note: Fetching audit logs to find "who" deleted it is complex due to latency/caching
-        };
-
-        await sendLog(message.guild, 'messageDelete', embed);
+        // Logging
+        await logAction(
+            message.guild.id,
+            'MESSAGE_DELETE',
+            { id: 'Unknown', username: 'Unknown' }, // Executor unknown for message delete event
+            { content: message.content },
+            message.author,
+            message.client
+        );
     },
 };

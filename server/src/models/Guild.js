@@ -43,7 +43,8 @@ const GuildSchema = new mongoose.Schema({
         logMessageDelete: { type: Boolean, default: true },
         logMessageEdit: { type: Boolean, default: true },
         logMemberJoin: { type: Boolean, default: true },
-        logMemberLeave: { type: Boolean, default: true }
+        logMemberLeave: { type: Boolean, default: true },
+        logVoiceState: { type: Boolean, default: true }
     },
     // Welcome Module
     welcomeConfig: {

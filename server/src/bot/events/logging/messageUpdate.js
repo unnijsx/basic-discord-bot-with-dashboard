@@ -1,26 +1,23 @@
 const { Events } = require('discord.js');
-const { sendLog } = require('../../../utils/logger');
+const { logAction } = require('../../../utils/auditLogger');
 
 module.exports = {
     name: Events.MessageUpdate,
     async execute(oldMessage, newMessage) {
         if (!oldMessage.guild || oldMessage.author?.bot) return;
-        if (oldMessage.content === newMessage.content) return; // Ignore embeds updates
+        if (oldMessage.content === newMessage.content) return;
 
-        const embed = {
-            color: 0xFFA500, // Orange
-            title: '✏️ Message Edited',
-            description: `**Message edited in ${oldMessage.channel}** [Jump to Message](${newMessage.url})`,
-            fields: [
-                { name: 'Before', value: oldMessage.content || '[No Content]' },
-                { name: 'After', value: newMessage.content || '[No Content]' }
-            ],
-            author: {
-                name: oldMessage.author.tag,
-                icon_url: oldMessage.author.displayAvatarURL()
-            }
-        };
-
-        await sendLog(oldMessage.guild, 'messageUpdate', embed);
+        await logAction(
+            oldMessage.guild.id,
+            'MESSAGE_UPDATE',
+            oldMessage.author,
+            {
+                oldContent: oldMessage.content,
+                newContent: newMessage.content,
+                url: newMessage.url
+            },
+            null,
+            oldMessage.client
+        );
     },
 };

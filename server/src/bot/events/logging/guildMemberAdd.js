@@ -1,22 +1,18 @@
 const { Events } = require('discord.js');
-const { sendLog } = require('../../../utils/logger');
+const { logAction } = require('../../../utils/auditLogger');
 
 module.exports = {
     name: Events.GuildMemberAdd,
     async execute(member) {
         // Logging Logic
-        const accountAge = Math.floor((Date.now() - member.user.createdTimestamp) / (1000 * 60 * 60 * 24));
-        const embed = {
-            color: 0x00FF00, // Green
-            title: '👋 Member Joined',
-            description: `${member} (${member.user.tag}) joined the server.`,
-            thumbnail: { url: member.user.displayAvatarURL() },
-            fields: [
-                { name: 'Account Age', value: `${accountAge} days old`, inline: true },
-                { name: 'User ID', value: member.id, inline: true }
-            ]
-        };
-        await sendLog(member.guild, 'memberAdd', embed);
+        await logAction(
+            member.guild.id,
+            'MEMBER_JOIN',
+            member.user,
+            'Joined server',
+            null,
+            member.client
+        );
 
         // Welcome Module Logic
         try {
