@@ -144,13 +144,13 @@ const DashboardHome = () => {
     const progressPercent = Math.round((enabledCount / totalModules) * 100) || 20;
 
     const modulesList = [
-        { title: t('sidebar.moderation'), desc: t('dashboard.descriptions.moderation'), icon: <SafetyCertificateOutlined />, color: '#faa61a', bg: 'rgba(250, 166, 26, 0.1)', path: 'moderation' },
-        { title: 'Economy', desc: t('dashboard.descriptions.economy'), icon: <DollarOutlined />, color: '#ffd700', bg: 'rgba(255, 215, 0, 0.1)', path: 'economy' },
-        { title: t('sidebar.music'), desc: t('dashboard.descriptions.music'), icon: <CustomerServiceOutlined />, color: '#eb459e', bg: 'rgba(235, 69, 158, 0.1)', path: 'music' },
-        { title: t('sidebar.analytics'), desc: t('dashboard.descriptions.analytics'), icon: <BarChartOutlined />, color: '#5865F2', bg: 'rgba(88, 101, 242, 0.1)', path: 'analytics' },
-        { title: t('sidebar.tickets'), desc: t('dashboard.descriptions.tickets'), icon: <DeploymentUnitOutlined />, color: '#3ba55c', bg: 'rgba(59, 165, 92, 0.1)', path: 'tickets' },
-        { title: 'Embeds', desc: t('dashboard.descriptions.embeds'), icon: <MessageOutlined />, color: '#00b0f4', bg: 'rgba(0, 176, 244, 0.1)', path: 'messages' },
-        { title: t('sidebar.settings'), desc: t('dashboard.descriptions.settings'), icon: <SettingOutlined />, color: '#f04747', bg: 'rgba(240, 71, 71, 0.1)', path: 'settings' },
+        { title: 'Moderation', desc: 'Manage infractions, auto-mod, and bad words.', icon: <SafetyCertificateOutlined />, color: '#faa61a', bg: 'rgba(250, 166, 26, 0.1)', path: 'moderation' },
+        { title: 'Economy', desc: 'Manage user balances, shop, and rewards.', icon: <DollarOutlined />, color: '#ffd700', bg: 'rgba(255, 215, 0, 0.1)', path: 'economy' },
+        { title: 'Music', desc: 'Control music playback and settings.', icon: <CustomerServiceOutlined />, color: '#eb459e', bg: 'rgba(235, 69, 158, 0.1)', path: 'music' },
+        { title: 'Analytics', desc: 'View detailed server statistics and growth.', icon: <BarChartOutlined />, color: '#5865F2', bg: 'rgba(88, 101, 242, 0.1)', path: 'analytics' },
+        { title: 'Ticket System', desc: 'Manage support tickets and panels.', icon: <DeploymentUnitOutlined />, color: '#3ba55c', bg: 'rgba(59, 165, 92, 0.1)', path: 'tickets' },
+        { title: 'Embed Builder', desc: 'Create and send custom embed messages.', icon: <MessageOutlined />, color: '#00b0f4', bg: 'rgba(0, 176, 244, 0.1)', path: 'messages' },
+        { title: 'Settings', desc: 'Configure general bot settings.', icon: <SettingOutlined />, color: '#f04747', bg: 'rgba(240, 71, 71, 0.1)', path: 'settings' },
     ];
 
     return (
@@ -172,14 +172,14 @@ const DashboardHome = () => {
                             <TagComponent status={true} />
                         </div>
                         <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 16, display: 'block', marginTop: 8 }}>
-                            {t('dashboard.welcomeBack')}
+                            Welcome back! Here is your server overview.
                         </Text>
                         <div style={{ marginTop: 20, display: 'flex', alignItems: 'center', gap: 15 }}>
                             <Button type="primary" size="large" icon={<SettingOutlined />} style={{ background: '#fff', color: '#5865F2', border: 'none' }} onClick={() => navigate('settings')}>
-                                {t('sidebar.settings')}
+                                Settings
                             </Button>
                             <Button ghost size="large" icon={<CustomerServiceOutlined />} onClick={() => navigate('music')}>
-                                {t('sidebar.music')}
+                                Music
                             </Button>
                         </div>
                     </div>
@@ -195,7 +195,7 @@ const DashboardHome = () => {
                         width={80}
                         format={percent => <span style={{ color: '#fff' }}>{percent}%</span>}
                     />
-                    <div style={{ color: '#fff', marginTop: 10, fontWeight: 500 }}>{t('dashboard.setupScore')}</div>
+                    <div style={{ color: '#fff', marginTop: 10, fontWeight: 500 }}>Setup Score</div>
                 </div>
             </HeroSection>
 
@@ -206,7 +206,7 @@ const DashboardHome = () => {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                             <div>
                                 <Statistic
-                                    title={t('dashboard.metrics.totalMembers')}
+                                    title="Total Members"
                                     value={guildData?.memberCount || 0}
                                     prefix={<UserOutlined />}
                                 />
@@ -223,7 +223,7 @@ const DashboardHome = () => {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                             <div>
                                 <Statistic
-                                    title={t('dashboard.metrics.activeChannels')}
+                                    title="Active Channels"
                                     value={guildData?.channelCount || 0}
                                     prefix={<MessageOutlined />}
                                 />
@@ -240,7 +240,7 @@ const DashboardHome = () => {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                             <div>
                                 <Statistic
-                                    title={t('dashboard.metrics.totalRoles')}
+                                    title="Total Roles"
                                     value={guildData?.roleCount || 0}
                                     prefix={<SafetyCertificateOutlined />}
                                 />
@@ -255,7 +255,7 @@ const DashboardHome = () => {
             </Row>
 
             {/* CONTROL CENTER */}
-            <Title level={3} style={{ color: '#fff', marginBottom: 24, paddingLeft: 5, borderLeft: '4px solid #5865F2' }}>{t('dashboard.controlCenter')}</Title>
+            <Title level={3} style={{ color: '#fff', marginBottom: 24, paddingLeft: 5, borderLeft: '4px solid #5865F2' }}>Control Center</Title>
             <Row gutter={[20, 20]}>
                 {modulesList.map((mod, idx) => (
                     <Col xs={24} sm={12} md={6} key={idx}>

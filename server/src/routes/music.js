@@ -128,11 +128,40 @@ router.post('/:guildId/control', checkAuth, async (req, res) => {
         switch (action) {
             case 'play': {
                 // Dashboard play request logic
-                // This mimics the /play command logic but via API
-                // We need to verify if the user is in a voice channel? 
-                // We can't easily check user VC here without Discord user ID context in req.user
-                // Assuming we play to the bot's current channel or fail
-                if (!player) return res.status(400).json({ message: 'Bot must be in voice channel to play via Dashboard' });
+                const member = await req.botClient.guilds.cache.get(guildId)?.members.fetch(req.user.discordId).catch(() => null);
+                if (!member?.voice?.channelId) {
+                    return res.status(400).json({ message: 'You must be in a voice channel to play music.' });
+                }
+
+                const userChannelId = member.voice.channelId;
+                const existingPlayer = shoukaku.players.get(guildId);
+
+                // Check if bot is already in a DIFFERENT voice channel
+                if (existingPlayer && existingPlayer.connection.channelId !== userChannelId) {
+                    return res.status(400).json({ message: 'Bot is already playing in another voice channel.' });
+                }
+
+                // Auto-join if not connected
+                let player = existingPlayer;
+                if (!player) {
+                    try {
+                        player = await shoukaku.joinVoiceChannel({
+                            guildId: guildId,
+                            channelId: userChannelId,
+                            shardId: 0 // assuming single shard or handled by lib
+                        });
+                        // Initialize queue structure if new connection
+                        if (!req.botClient.queue.has(guildId)) {
+                            req.botClient.queue.set(guildId, {
+                                tracks: [],
+                                current: null,
+                                loop: false
+                            });
+                        }
+                    } catch (err) {
+                        return res.status(500).json({ message: 'Failed to join voice channel.', error: err.message });
+                    }
+                }
 
                 const node = shoukaku.options.nodeResolver(shoukaku.nodes);
                 const isUrl = /^https?:\/\//.test(query);
@@ -153,10 +182,12 @@ router.post('/:guildId/control', checkAuth, async (req, res) => {
                 } else if (['playlist', 'PLAYLIST_LOADED'].includes(result.loadType)) {
                     track = result.data.tracks[0].encoded;
                     metadata = result.data.tracks[0].info;
-                    // TODO: Add whole playlist
+                    // TODO: Add whole playlist support later if needed
                 }
 
                 const trackItem = { encoded: track, info: metadata, requester: { tag: 'Dashboard User', displayAvatarURL: () => '' } };
+
+                const guildQueue = req.botClient.queue.get(guildId); // Refresh reference
 
                 // If queue exists
                 if (guildQueue) {
@@ -168,7 +199,7 @@ router.post('/:guildId/control', checkAuth, async (req, res) => {
                     }
                     // Emit update
                     req.io.to(guildId).emit('queueUpdate');
-                    req.io.to(guildId).emit('playerUpdate', { isPlaying: true });
+                    req.io.to(guildId).emit('playerUpdate', { isPlaying: true, connected: true });
                 }
                 break;
             }

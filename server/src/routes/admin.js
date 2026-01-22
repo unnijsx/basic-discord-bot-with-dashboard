@@ -242,4 +242,82 @@ router.delete('/admins/:discordId', requireSuperAdmin, async (req, res) => {
     }
 });
 
+const DeletionRequest = require('../models/DeletionRequest');
+const AuditLog = require('../models/AuditLog');
+const Ticket = require('../models/Ticket');
+const TicketPanel = require('../models/TicketPanel');
+const Level = require('../models/Level');
+const Form = require('../models/Form');
+const ScheduledMessage = require('../models/ScheduledMessage');
+// const EconomyProfile = require('../models/EconomyProfile');
+
+// --- DELETION REQUEST MANAGEMENT (Super Admin) ---
+
+// GET /admin/deletion-requests
+router.get('/deletion-requests', requireSuperAdmin, async (req, res) => {
+    try {
+        const requests = await DeletionRequest.find({ status: 'pending' }).sort({ createdAt: -1 });
+        res.json(requests);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// POST /admin/deletion-requests/:id/approve
+router.post('/deletion-requests/:id/approve', requireSuperAdmin, async (req, res) => {
+    try {
+        const request = await DeletionRequest.findById(req.params.id);
+        if (!request) return res.status(404).json({ message: 'Request not found' });
+        if (request.status !== 'pending') return res.status(400).json({ message: 'Request already processed' });
+
+        const { guildId } = request;
+
+        // EXECUTE DEEP WIPE
+        await Promise.all([
+            AuditLog.deleteMany({ guildId }),
+            Level.deleteMany({ guildId }),
+            Ticket.deleteMany({ guildId }),
+            TicketPanel.deleteMany({ guildId }),
+            Form.deleteMany({ guildId }),
+            ScheduledMessage.deleteMany({ guildId }),
+            // EconomyProfile.deleteMany({ guildId }),
+            Guild.findOneAndDelete({ guildId })
+        ]);
+
+        // Update Request Status
+        request.status = 'approved';
+        request.resolvedAt = new Date();
+        await request.save();
+
+        // Optional: Force Bot to Leave Guild
+        try {
+            const guild = req.botClient.guilds.cache.get(guildId);
+            if (guild) await guild.leave();
+        } catch (e) {
+            console.error('Failed to leave guild:', e);
+        }
+
+        res.json({ success: true, message: 'Server data wiped and request approved.' });
+    } catch (err) {
+        console.error('Approval Error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// POST /admin/deletion-requests/:id/reject
+router.post('/deletion-requests/:id/reject', requireSuperAdmin, async (req, res) => {
+    try {
+        const request = await DeletionRequest.findById(req.params.id);
+        if (!request) return res.status(404).json({ message: 'Request not found' });
+
+        request.status = 'rejected';
+        request.resolvedAt = new Date();
+        await request.save();
+
+        res.json({ success: true, message: 'Request rejected.' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;

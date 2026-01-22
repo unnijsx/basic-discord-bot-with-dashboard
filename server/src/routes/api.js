@@ -424,7 +424,7 @@ router.post('/guilds/:guildId/backup', async (req, res) => {
 // DATA MANAGEMENT
 // =======================
 
-// Wipe Guild Data
+// Wipe Guild Data (Direct)
 router.delete('/guilds/:guildId/data', async (req, res) => {
     try {
         const { guildId } = req.params;
@@ -451,6 +451,40 @@ router.delete('/guilds/:guildId/data', async (req, res) => {
         res.json({ success: true, message: 'Server data wiped successfully' });
     } catch (err) {
         console.error('Data Wipe Error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Request Data Wipe (Super Admin Approval)
+const DeletionRequest = require('../models/DeletionRequest');
+
+router.post('/guilds/:guildId/wipe-request', async (req, res) => {
+    try {
+        const { guildId } = req.params;
+        const { reason } = req.body;
+
+        // Check for existing pending request
+        const existing = await DeletionRequest.findOne({ guildId, status: 'pending' });
+        if (existing) {
+            return res.status(400).json({ message: 'A deletion request is already pending for this server.' });
+        }
+
+        const newRequest = new DeletionRequest({
+            guildId,
+            requestedBy: req.user.discordId,
+            reason: reason || 'User requested via Dashboard',
+            status: 'pending'
+        });
+
+        await newRequest.save();
+
+        if (req.user) {
+            logAction(guildId, 'WIPE_REQUEST', req.user, { reason: newRequest.reason });
+        }
+
+        res.json({ success: true, message: 'Deletion request submitted to Super Admin.' });
+    } catch (err) {
+        console.error('Wipe Request Error:', err);
         res.status(500).json({ error: err.message });
     }
 });

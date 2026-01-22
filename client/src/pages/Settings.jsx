@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Typography, Form, Input, Switch, Button, notification, Divider, Select, Row, Col, Spin, Alert, Tooltip, Space, Tag } from 'antd';
-import { SaveOutlined, SettingOutlined, AppstoreOutlined } from '@ant-design/icons';
+import { Card, Typography, Form, Input, Switch, Button, notification, Divider, Select, Row, Col, Spin, Alert, Tooltip, Space, Tag, Modal } from 'antd';
+import { SaveOutlined, SettingOutlined, AppstoreOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import { useParams } from 'react-router-dom';
 import api from '../api/axios';
@@ -205,6 +205,54 @@ const Settings = () => {
                     </Col>
                 </Row>
 
+                <Row gutter={[24, 24]}>
+                    <Col xs={24}>
+                        <DangerZoneCard title="Danger Zone" bordered={false}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div>
+                                    <Title level={5} style={{ color: '#f04747', margin: 0 }}>Delete Server Data</Title>
+                                    <Text style={{ color: '#faa61a' }}>
+                                        Request to permanently wipe all data associated with this server. This action requires Super Admin approval and cannot be undone.
+                                    </Text>
+                                </div>
+                                <Button
+                                    danger
+                                    type="primary"
+                                    icon={<DeleteOutlined />}
+                                    onClick={() => {
+                                        Modal.confirm({
+                                            title: 'Are you absolutely sure?',
+                                            icon: <ExclamationCircleOutlined style={{ color: '#f04747' }} />,
+                                            content: 'This will send a request to the Super Admin to wipe all data for this server (Logs, Tickets, Levels, etc.). This action is irreversible once approved.',
+                                            okText: 'Request Wipe',
+                                            okButtonProps: { danger: true },
+                                            onOk: async () => {
+                                                try {
+                                                    const token = localStorage.getItem('token');
+                                                    await api.post(`/guilds/${guildId}/wipe-request`, {}, {
+                                                        headers: { Authorization: `Bearer ${token}` }
+                                                    });
+                                                    notification.success({
+                                                        message: 'Request Sent',
+                                                        description: 'Your deletion request has been sent to the Super Admin.'
+                                                    });
+                                                } catch (err) {
+                                                    notification.error({
+                                                        message: 'Request Failed',
+                                                        description: err.response?.data?.message || 'Could not send deletion request.'
+                                                    });
+                                                }
+                                            }
+                                        });
+                                    }}
+                                >
+                                    Wipe All Data
+                                </Button>
+                            </div>
+                        </DangerZoneCard>
+                    </Col>
+                </Row>
+
                 <div style={{
                     position: 'fixed',
                     bottom: 0,
@@ -229,9 +277,18 @@ const Settings = () => {
                         Save Changes
                     </Button>
                 </div>
+
             </Form>
-        </div>
+        </div >
     );
 };
+
+const DangerZoneCard = styled(StyledCard)`
+    border-color: #f04747;
+    .ant-card-head {
+        border-bottom-color: #f04747;
+        color: #f04747;
+    }
+`;
 
 export default Settings;

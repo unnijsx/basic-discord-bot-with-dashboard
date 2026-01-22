@@ -156,15 +156,22 @@ const TicketSystem = () => {
         try {
             const payload = { ...values };
             if (editingPanel) payload.uniqueId = editingPanel.uniqueId;
+            console.log('Sending payload:', payload); // Debug log
             await api.post(`/tickets/${guildId}/panels`, payload);
             message.success('Configuration saved');
             setView('list');
             fetchData();
         } catch (error) {
-            message.error('Save failed');
+            console.error('Save error:', error);
+            message.error(`Save failed: ${error.response?.data?.error || error.message}`);
         } finally {
             setLoading(false);
         }
+    };
+
+    const onFinishFailed = (errorInfo) => {
+        console.log('Failed:', errorInfo);
+        message.warning('Please fill in all required fields (e.g., Title)');
     };
 
     const handleEditStart = (panel) => {
@@ -299,11 +306,11 @@ const TicketSystem = () => {
                 {/* Configuration Form */}
                 <Col xs={24} lg={14}>
                     <Card title={editingPanel ? 'Edit Panel' : 'Create Panel'} style={{ background: '#2f3136', borderColor: '#202225' }}>
-                        <Form form={form} layout="vertical" onFinish={handleSave}>
+                        <Form form={form} layout="vertical" onFinish={handleSave} onFinishFailed={onFinishFailed}>
                             <Title level={5} style={{ color: '#fff' }}>Embed Appearance</Title>
                             <Row gutter={16}>
                                 <Col span={24}>
-                                    <Form.Item name="title" label="Title" rules={[{ required: true }]}>
+                                    <Form.Item name="title" label="Title" rules={[{ required: true, message: 'Please enter a title for the panel' }]}>
                                         <Input placeholder="Server Support" />
                                     </Form.Item>
                                 </Col>
@@ -378,7 +385,14 @@ const TicketSystem = () => {
                             </Row>
 
                             <Form.Item>
-                                <Button type="primary" htmlType="submit" block size="large" loading={loading} style={{ background: '#5865F2', marginTop: 16 }}>
+                                <Button
+                                    type="primary"
+                                    onClick={() => form.submit()}
+                                    block
+                                    size="large"
+                                    loading={loading}
+                                    style={{ background: '#5865F2', marginTop: 16 }}
+                                >
                                     Save Panel
                                 </Button>
                             </Form.Item>
@@ -403,6 +417,9 @@ const TicketSystem = () => {
                                             <div className="discord-desc">{values.description || 'Embed Description'}</div>
                                             <div className="discord-btn">
                                                 {values.buttonText || 'Create Ticket'}
+                                            </div>
+                                            <div style={{ marginTop: 8 }}>
+                                                <Tag color="#5865F2">{values.namingScheme}</Tag>
                                             </div>
                                         </div>
                                     </TicketCard>
