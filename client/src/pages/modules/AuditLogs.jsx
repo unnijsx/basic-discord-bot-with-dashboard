@@ -54,7 +54,7 @@ const AuditLogs = () => {
             case 'MEMBER_LEAVE':
                 return <Text>User left the server</Text>;
             case 'VOICE_STATE':
-                return <Text dangerouslySetInnerHTML={{ __html: details }}></Text>;
+                return <Text>{typeof details === 'string' ? details : JSON.stringify(details)}</Text>;
 
             case 'UPDATE_SETTINGS':
                 const changes = [];
