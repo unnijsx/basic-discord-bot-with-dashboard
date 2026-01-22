@@ -145,7 +145,6 @@ const Form = require('../../models/Form');
 const TicketPanel = require('../../models/TicketPanel');
 const Ticket = require('../../models/Ticket');
 const Suggestion = require('../../models/Suggestion');
-const Suggestion = require('../../models/Suggestion');
 const { logAction } = require('../../utils/auditLogger');
 const { generateTranscript } = require('../../utils/transcriptGenerator');
 
