@@ -212,15 +212,19 @@ router.get('/guilds/:guildId/leaderboard', async (req, res) => {
     }
 });
 
-// Get Channels (Text Only)
+// Get Channels (All Types)
 router.get('/guilds/:guildId/channels', async (req, res) => {
     try {
         const guild = req.botClient.guilds.cache.get(req.params.guildId);
         if (!guild) return res.status(404).json({ message: 'Guild not found' });
 
         const channels = guild.channels.cache
-            .filter(c => c.type === 0) // 0 = GuildText
-            .map(c => ({ id: c.id, name: c.name }));
+            .map(c => ({
+                id: c.id,
+                name: c.name,
+                type: c.type,
+                parentId: c.parentId
+            }));
 
         res.json(channels);
     } catch (err) {

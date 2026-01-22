@@ -91,7 +91,7 @@ const ServerAnalytics = () => {
             </Row>
 
             <StyledCard title={<span style={{ color: '#fff' }}>Activity Trends (30 Days)</span>}>
-                <div style={{ width: '100%', height: 350 }}>
+                <div style={{ width: '100%', height: 350, minHeight: 350 }}>
                     {data.length > 0 ? (
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>

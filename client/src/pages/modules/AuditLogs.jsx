@@ -31,7 +31,7 @@ const AuditLogs = () => {
         fetchLogs();
     }, [guildId]);
 
-    const renderDetails = (action, details) => {
+    const renderDetails = React.useCallback((action, details) => {
         if (!details) return <Text type="secondary">No details</Text>;
 
         switch (action.toUpperCase()) {
@@ -84,9 +84,9 @@ const AuditLogs = () => {
                     </Tooltip>
                 );
         }
-    };
+    }, []);
 
-    const columns = [
+    const columns = React.useMemo(() => [
         {
             title: 'Action',
             dataIndex: 'action',
@@ -130,7 +130,7 @@ const AuditLogs = () => {
                 </Tooltip>
             )
         }
-    ];
+    ], [renderDetails]);
 
 
 
