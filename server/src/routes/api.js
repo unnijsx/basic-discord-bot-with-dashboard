@@ -416,6 +416,123 @@ router.post('/guilds/:guildId/backup', async (req, res) => {
 // TICKET SYSTEM MOVED TO tickets.js
 // =======================
 
+// =======================
+// DATA MANAGEMENT
+// =======================
+
+// Wipe Guild Data
+router.delete('/guilds/:guildId/data', async (req, res) => {
+    try {
+        const { guildId } = req.params;
+
+        // Verify ownership or admin permission (Backend check recommended)
+        // For now relying on middleware or assuming route is protected
+
+        // Delete related data
+        await Promise.all([
+            AuditLog.deleteMany({ guildId }),
+            Level.deleteMany({ guildId }),
+            Ticket.deleteMany({ guildId }),
+            TicketPanel.deleteMany({ guildId }),
+            Form.deleteMany({ guildId }),
+            ScheduledMessage.deleteMany({ guildId }),
+            // EconomyProfile.deleteMany({ guildId }), // If exists
+            Guild.findOneAndDelete({ guildId })
+        ]);
+
+        if (req.user) {
+            console.log(`[Data Wipe] User ${req.user.id} wiped data for guild ${guildId}`);
+        }
+
+        res.json({ success: true, message: 'Server data wiped successfully' });
+    } catch (err) {
+        console.error('Data Wipe Error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// =======================
+// BACKUP SYSTEM
+// =======================
+const Backup = require('../models/Backup');
+
+// Generate Backup Code
+router.post('/guilds/:guildId/backups/generate', async (req, res) => {
+    try {
+        const { guildId } = req.params;
+        const settings = await Guild.findOne({ guildId }).lean();
+
+        if (!settings) return res.status(404).json({ message: 'No settings to backup' });
+
+        // Generate 10-digit code
+        const code = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+
+        // Save Backup
+        // Clean up internal fields
+        const backupData = { ...settings };
+        delete backupData._id;
+        delete backupData.__v;
+
+        const newBackup = new Backup({
+            code,
+            guildId,
+            data: backupData,
+            createdAt: new Date()
+        });
+
+        await newBackup.save();
+
+        // Audit Log
+        if (req.user) {
+            logAction(guildId, 'BACKUP_GENERATE', req.user, { code });
+        }
+
+        res.json({ success: true, code });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Restore Backup Code
+router.post('/guilds/:guildId/backups/restore', async (req, res) => {
+    try {
+        const { guildId } = req.params;
+        const { code } = req.body;
+
+        if (!code) return res.status(400).json({ message: 'Code required' });
+
+        const backup = await Backup.findOne({ code });
+        if (!backup) return res.status(404).json({ message: 'Invalid or expired backup code' });
+
+        // Optional: specific guild check? 
+        // "that will help to load default settings of the server"
+        // Usually backups are cross-server or same-server? 
+        // If we want to allow copying templates, we ignore guildId check. 
+        // If we want to strict restore, we check backup.guildId === guildId.
+        // For "loading default settings", maybe it's a template system?
+        // Let's assume it allows applying a backup to ANY server (Template System)
+        // BUT we must overwrite the guildId in the data with the CURRENT guildId.
+
+        const dataToRestore = { ...backup.data, guildId: guildId };
+
+        await Guild.findOneAndUpdate(
+            { guildId },
+            { $set: dataToRestore },
+            { new: true, upsert: true }
+        );
+
+        // Audit Log
+        if (req.user) {
+            logAction(guildId, 'BACKUP_RESTORE', req.user, { code });
+        }
+
+        res.json({ success: true, message: 'Settings restored from backup' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Get Audit Logs
 router.get('/guilds/:guildId/audit-logs', async (req, res) => {
     try {

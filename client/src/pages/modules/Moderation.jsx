@@ -52,6 +52,8 @@ const Moderation = () => {
             const payload = {
                 modules: { moderation: values.enabled },
                 moderationConfig: {
+                    ...settings.moderationConfig, // Preserve existing config (logChannelId, etc)
+                    autoMod: true, // Ensure AutoMod logic is enabled serverside
                     logChannelId: values.logChannelId,
                     muteRoleId: values.muteRoleId,
                     autoModFilters: {

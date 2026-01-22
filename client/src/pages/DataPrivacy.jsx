@@ -9,11 +9,12 @@ const DataPrivacy = ({ guildId }) => {
 
     const handleDeleteData = async () => {
         try {
-            // Placeholder: Backend needs to implement data Wipe
-            // await axios.delete(`/guilds/${guildId}/data`);
-            message.success('Data deletion request submitted.');
+            await axios.delete(`/guilds/${guildId}/data`);
+            message.success('Data deletion request processed. All server data has been wiped.');
+            // Optionally redirect or refresh
+            setTimeout(() => window.location.href = '/dashboard', 2000);
         } catch (error) {
-            message.error('Failed to submit request');
+            message.error('Failed to submit request: ' + (error.response?.data?.message || 'Server Error'));
         }
     };
 

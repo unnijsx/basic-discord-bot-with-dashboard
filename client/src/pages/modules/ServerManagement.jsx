@@ -22,13 +22,50 @@ const ServerManagement = () => {
 };
 
 const BackupsManager = ({ guildId }) => {
+    // --- Cloud Backup State ---
+    const [backupCode, setBackupCode] = React.useState('');
+    const [restoreCode, setRestoreCode] = React.useState('');
+    const [generating, setGenerating] = React.useState(false);
+    const [restoring, setRestoring] = React.useState(false);
+
+    const handleGenerateCloudBackup = async () => {
+        setGenerating(true);
+        try {
+            const { data } = await api.post(`/guilds/${guildId}/backups/generate`);
+            setBackupCode(data.code);
+            message.success('Cloud Backup created!');
+            Modal.success({
+                title: 'Backup Code Generated',
+                content: (
+                    <div>
+                        <Paragraph>Save this code to restore your settings later:</Paragraph>
+                        <Title level={2} copyable style={{ textAlign: 'center', margin: '20px 0', color: '#5865F2' }}>{data.code}</Title>
+                        <Paragraph type="secondary">This code will expire in 7 days.</Paragraph>
+                    </div>
+                ),
+            });
+        } catch (error) {
+            message.error('Failed to generate backup');
+        } finally {
+            setGenerating(false);
+        }
+    };
+
+    const handleRestoreCloudBackup = async () => {
+        if (!restoreCode || restoreCode.length < 10) return message.error('Invalid code');
+        setRestoring(true);
+        try {
+            await api.post(`/guilds/${guildId}/backups/restore`, { code: restoreCode });
+            message.success('Settings restored from Cloud Backup!');
+            setRestoreCode('');
+        } catch (error) {
+            message.error('Restore failed: ' + (error.response?.data?.message || 'Invalid Code'));
+        } finally {
+            setRestoring(false);
+        }
+    };
 
     const handleExport = () => {
-        // Direct download link
-        // We assume the user has a valid session/cookie for auth
-        // If api.defaults.baseURL is relative (e.g. /api), we need full path or letting browser handle it.
-        // Since we enabled credentials, we can just open the URL.
-        // Since we enabled credentials, we can just open the URL.
         const url = `/api/guilds/${guildId}/backup`;
         window.open(url, '_blank');
         message.success('Download started');
@@ -39,7 +76,6 @@ const BackupsManager = ({ guildId }) => {
         reader.onload = async (e) => {
             try {
                 const json = JSON.parse(e.target.result);
-                // Validate basic structure
                 if (!json.data || !json.data.guildId) {
                     message.error('Invalid backup file format');
                     return;
@@ -53,35 +89,55 @@ const BackupsManager = ({ guildId }) => {
             }
         };
         reader.readAsText(file);
-        return false; // Prevent default upload behavior
+        return false;
     };
 
     return (
         <div style={{ padding: 24, textAlign: 'center' }}>
             <Title level={4} style={{ color: '#fff' }}>Server Backup & Restore</Title>
             <Paragraph style={{ color: '#aaa', maxWidth: 600, margin: '0 auto 24px' }}>
-                Export your server configuration (modules, settings, channels) to a JSON file.
-                You can restore this later if you mess up settings or want to migrate policies.
+                Manage your server configuration backups. You can use local JSON files or our Cloud Backup system.
             </Paragraph>
 
-            <Space size="large" align="start">
+            <Space size="large" align="start" wrap style={{ justifyContent: 'center' }}>
+                {/* Local JSON Export */}
                 <Card style={{ width: 300, background: '#202225', borderColor: '#2f3136' }}>
                     <DownloadOutlined style={{ fontSize: 48, color: '#5865F2', marginBottom: 16 }} />
-                    <Title level={5} style={{ color: '#fff' }}>Export Settings</Title>
-                    <Button type="primary" icon={<DownloadOutlined />} onClick={handleExport} block>
-                        Download Backup
-                    </Button>
+                    <Title level={5} style={{ color: '#fff' }}>Local JSON Export</Title>
+                    <div style={{ marginBottom: 16, color: '#aaa', fontSize: 13 }}>Download config to your computer.</div>
+                    <Space direction="vertical" style={{ width: '100%' }}>
+                        <Button type="primary" icon={<DownloadOutlined />} onClick={handleExport} block>
+                            Download JSON
+                        </Button>
+                        <Upload beforeUpload={handleImport} showUploadList={false} accept=".json">
+                            <Button icon={<UploadOutlined />} block>Upload JSON</Button>
+                        </Upload>
+                    </Space>
                 </Card>
 
-                <Card style={{ width: 300, background: '#202225', borderColor: '#2f3136' }}>
-                    <UploadOutlined style={{ fontSize: 48, color: '#3ba55c', marginBottom: 16 }} />
-                    <Title level={5} style={{ color: '#fff' }}>Restore Settings</Title>
-                    <Upload beforeUpload={handleImport} showUploadList={false} accept=".json">
-                        <Button icon={<UploadOutlined />} block>Click to Upload JSON</Button>
-                    </Upload>
-                    <div style={{ marginTop: 8, fontSize: 12, color: '#aaa' }}>
-                        This will overwrite current config.
-                    </div>
+                {/* Cloud Backup */}
+                <Card style={{ width: 300, background: '#2f3136', borderColor: '#5865F2', borderWidth: 2 }}>
+                    <SafetyCertificateOutlined style={{ fontSize: 48, color: '#faa61a', marginBottom: 16 }} />
+                    <Title level={5} style={{ color: '#fff' }}>Cloud Backup</Title>
+                    <div style={{ marginBottom: 16, color: '#aaa', fontSize: 13 }}>Generate a 10-digit code to instant restore.</div>
+
+                    <Space direction="vertical" style={{ width: '100%' }}>
+                        <Button type="primary" style={{ background: '#faa61a', borderColor: '#faa61a' }} loading={generating} onClick={handleGenerateCloudBackup} block>
+                            Generate Code
+                        </Button>
+
+                        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                            <Input
+                                placeholder="Enter Code"
+                                value={restoreCode}
+                                onChange={e => setRestoreCode(e.target.value)}
+                                style={{ textAlign: 'center' }}
+                            />
+                            <Popconfirm title="Overwrite current settings?" onConfirm={handleRestoreCloudBackup}>
+                                <Button loading={restoring} icon={<UploadOutlined />} />
+                            </Popconfirm>
+                        </div>
+                    </Space>
                 </Card>
             </Space>
         </div>

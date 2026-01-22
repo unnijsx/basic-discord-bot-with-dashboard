@@ -17,20 +17,20 @@ router.get('/:guildId/panels', async (req, res) => {
 // POST /api/tickets/:guildId/panels
 router.post('/:guildId/panels', async (req, res) => {
     try {
-        const { title, description, buttonText, buttonEmoji, ticketCategory, supportRole, namingScheme, uniqueId } = req.body;
+        const { title, description, buttonText, buttonEmoji, ticketCategory, closedCategory, transcriptChannelId, supportRole, namingScheme, uniqueId } = req.body;
 
         // If uniqueId exists, update, else create
         let panel;
         if (uniqueId) {
             panel = await TicketPanel.findOneAndUpdate(
                 { uniqueId, guildId: req.params.guildId },
-                { title, description, buttonText, buttonEmoji, ticketCategory, supportRole, namingScheme },
+                { title, description, buttonText, buttonEmoji, ticketCategory, closedCategory, transcriptChannelId, supportRole, namingScheme },
                 { new: true, upsert: true }
             );
         } else {
             panel = new TicketPanel({
                 guildId: req.params.guildId,
-                title, description, buttonText, buttonEmoji, ticketCategory, supportRole, namingScheme
+                title, description, buttonText, buttonEmoji, ticketCategory, closedCategory, transcriptChannelId, supportRole, namingScheme
             });
             await panel.save();
         }

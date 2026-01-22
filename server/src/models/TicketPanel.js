@@ -8,7 +8,9 @@ const TicketPanelSchema = new mongoose.Schema({
     description: { type: String, default: 'Click the button below to react out to our support team.' },
     buttonText: { type: String, default: 'Create Ticket' },
     buttonEmoji: { type: String, default: '🎫' },
-    ticketCategory: { type: String }, // Discord Category ID to create tickets in
+    ticketCategory: { type: String }, // Open Ticket Category ID
+    closedCategory: { type: String }, // Scrapped/Archived Ticket Category ID
+    transcriptChannelId: { type: String }, // Channel to send transcripts to
     supportRole: { type: String }, // Role ID to ping/add to ticket
     namingScheme: { type: String, default: 'ticket-{username}' }, // 'ticket-{username}' or 'ticket-{id}'
     formQuestions: [{

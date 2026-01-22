@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Card, Typography, Form, Input, Switch, Button, notification, Divider, Select, Row, Col, Spin, Alert, Tooltip, Space, Tag } from 'antd';
-import { SaveOutlined, SettingOutlined, AppstoreOutlined, GlobalOutlined } from '@ant-design/icons';
+import { SaveOutlined, SettingOutlined, AppstoreOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import { useParams } from 'react-router-dom';
 import api from '../api/axios';
@@ -29,7 +28,6 @@ const StyledCard = styled(Card)`
 
 const Settings = () => {
     const { guildId } = useParams();
-    const { t, i18n } = useTranslation();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [form] = Form.useForm();
@@ -75,7 +73,6 @@ const Settings = () => {
 
             form.setFieldsValue({
                 prefix: data.prefix,
-                language: data.language,
                 'modules.moderation': data.modules?.moderation,
                 'modules.music': data.modules?.music,
                 'modules.leveling': data.modules?.leveling,
@@ -101,12 +98,6 @@ const Settings = () => {
             await api.put(`/guilds/${guildId}/settings`, values, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-
-            // Update local language immediately for better UX
-            if (values.language) {
-                i18n.changeLanguage(values.language);
-                localStorage.setItem('i18nextLng', values.language);
-            }
 
             notificationApi.success({
                 message: 'Settings Saved',
@@ -137,9 +128,9 @@ const Settings = () => {
 
             <PageHeader>
                 <Title level={2} style={{ color: '#fff', marginBottom: 8 }}>
-                    <SettingOutlined /> {t('settings.title')}
+                    <SettingOutlined /> Server Settings
                 </Title>
-                <Text type="secondary">{t('settings.subtitle')}</Text>
+                <Text type="secondary">Manage generic server configurations.</Text>
             </PageHeader>
 
             <Form
@@ -149,14 +140,14 @@ const Settings = () => {
             >
                 <Row gutter={[24, 24]}>
                     <Col xs={24} lg={14}>
-                        <StyledCard title={t('settings.coreConfig')} bordered={false}>
+                        <StyledCard title="Core Configuration" bordered={false}>
                             <Row gutter={16}>
-                                <Col span={12}>
+                                <Col span={24}>
                                     <Form.Item
                                         name="prefix"
-                                        label={<span style={{ color: '#dbdee1' }}>{t('settings.prefix')}</span>}
-                                        rules={[{ required: true, message: t('settings.prefixRequired') }]}
-                                        extra={<span style={{ color: '#949ba4' }}>{t('settings.prefixHelp')}</span>}
+                                        label={<span style={{ color: '#dbdee1' }}>Bot Prefix</span>}
+                                        rules={[{ required: true, message: 'Prefix is required' }]}
+                                        extra={<span style={{ color: '#949ba4' }}>The prefix used for legacy commands (if any).</span>}
                                     >
                                         <Input
                                             size="large"
@@ -165,31 +156,12 @@ const Settings = () => {
                                         />
                                     </Form.Item>
                                 </Col>
-                                <Col span={12}>
-                                    <Form.Item
-                                        name="language"
-                                        label={<span style={{ color: '#dbdee1' }}>{t('settings.language')}</span>}
-                                        initialValue="en"
-                                    >
-                                        <Select
-                                            size="large"
-                                            style={{ width: '100%' }}
-                                            dropdownStyle={{ background: '#2b2d31' }}
-                                        >
-                                            <Option value="en">English (US)</Option>
-                                            <Option value="ml">Malayalam (മലയാളം)</Option>
-                                            <Option value="hi">Hindi (हिंदी)</Option>
-                                            <Option value="de">German (Deutsch)</Option>
-                                            <Option value="ru">Russian (Русский)</Option>
-                                        </Select>
-                                    </Form.Item>
-                                </Col>
                             </Row>
                         </StyledCard>
 
-                        <StyledCard title={t('settings.moduleManagement')} bordered={false} style={{ marginTop: 24 }}>
+                        <StyledCard title="Module Management" bordered={false} style={{ marginTop: 24 }}>
                             <Paragraph style={{ color: '#949ba4', marginBottom: 24 }}>
-                                {t('settings.moduleHelp')} <span style={{ color: '#faa61a' }}>{t('settings.premiumLocked')}</span>
+                                Toggle modules to enable or disable features. <span style={{ color: '#faa61a' }}>Some are Premium only.</span>
                             </Paragraph>
 
                             <Row gutter={[16, 16]}>
@@ -201,10 +173,10 @@ const Settings = () => {
                                                 <Card size="small" style={{ background: '#2b2d31', borderColor: '#1e1f22', opacity: locked ? 0.6 : 1 }}>
                                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                                         <Space>
-                                                            <span style={{ color: '#fff', fontWeight: 600, textTransform: 'capitalize' }}>{t(`sidebar.${key === 'logging' ? 'logs' : key}`)}</span>
+                                                            <span style={{ color: '#fff', fontWeight: 600, textTransform: 'capitalize' }}>{key === 'logging' ? 'Logs' : key}</span>
                                                             {locked && <Tag color="gold">PREMIUM</Tag>}
                                                         </Space>
-                                                        <Tooltip title={locked ? t('settings.upgradeToPremium') : ""}>
+                                                        <Tooltip title={locked ? "Upgrade to Premium" : ""}>
                                                             <Switch disabled={locked} />
                                                         </Tooltip>
                                                     </div>
@@ -254,7 +226,7 @@ const Settings = () => {
                         loading={saving}
                         style={{ minWidth: 150 }}
                     >
-                        {t('settings.saveChanges')}
+                        Save Changes
                     </Button>
                 </div>
             </Form>

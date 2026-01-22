@@ -176,9 +176,12 @@ const FormBuilder = () => {
                         <Input placeholder="Text on the button" />
                     </Form.Item>
                     <Form.Item name="responseChannelId" label="Response Channel" rules={[{ required: true }]}>
-                        <Select placeholder="Select a channel">
-                            {channels.map(c => <Option key={c.id} value={c.id}>#{c.name}</Option>)}
-                        </Select>
+                        <Select
+                            placeholder="Select a channel"
+                            showSearch
+                            optionFilterProp="label"
+                            options={channels.map(c => ({ label: `#${c.name}`, value: c.id }))}
+                        />
                     </Form.Item>
 
                     <Title level={5}>Questions ({questions.length}/5)</Title>
@@ -225,9 +228,12 @@ const FormBuilder = () => {
                         label="Select Channel to Post Button"
                         rules={[{ required: true, message: 'Please select a channel!' }]}
                     >
-                        <Select placeholder="Select a channel">
-                            {channels.map(c => <Option key={c.id} value={c.id}>#{c.name}</Option>)}
-                        </Select>
+                        <Select
+                            placeholder="Select a channel"
+                            showSearch
+                            optionFilterProp="label"
+                            options={channels.map(c => ({ label: `#${c.name}`, value: c.id }))}
+                        />
                     </Form.Item>
                     <Text type="secondary">
                         This will send a message with a button to the selected channel.

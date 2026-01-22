@@ -145,7 +145,9 @@ const Form = require('../../models/Form');
 const TicketPanel = require('../../models/TicketPanel');
 const Ticket = require('../../models/Ticket');
 const Suggestion = require('../../models/Suggestion');
+const Suggestion = require('../../models/Suggestion');
 const { logAction } = require('../../utils/auditLogger');
+const { generateTranscript } = require('../../utils/transcriptGenerator');
 
 async function handleSuggestionVote(interaction) {
     try {
@@ -403,14 +405,15 @@ async function handleTicketClose(interaction) {
         const ticketData = await Ticket.findOne({ channelId: channel.id });
         if (!ticketData) return interaction.editReply('❌ Ticket not found in DB.');
 
-        // 1. Fetch Messages
-        let messages = await channel.messages.fetch({ limit: 100 });
+        // Fetch Panel Config to check for Closed Category
+        const panel = await TicketPanel.findOne({ guildId: guild.id });
 
-        // 2. Generate Transcript
+        // 1. Fetch Messages & Generate Transcript
+        let messages = await channel.messages.fetch({ limit: 100 });
         const buffer = await generateTranscript(channel, messages);
         const attachment = new AttachmentBuilder(buffer, { name: `transcript-${channel.name}.html` });
 
-        // 3. DM User
+        // 2. DM User
         try {
             const ticketOwner = await guild.members.fetch(ticketData.userId);
             if (ticketOwner) {
@@ -423,7 +426,28 @@ async function handleTicketClose(interaction) {
             console.log('Could not DM user transcript');
         }
 
-        // 4. Update Database
+        // 3a. Send to Transcript Log Channel
+        if (panel && panel.transcriptChannelId) {
+            try {
+                const logChannel = guild.channels.cache.get(panel.transcriptChannelId);
+                if (logChannel) {
+                    const logEmbed = new EmbedBuilder()
+                        .setTitle(`Ticket Closed: ${channel.name}`)
+                        .addFields(
+                            { name: 'Owner', value: `<@${ticketData.userId}>`, inline: true },
+                            { name: 'Closed By', value: `${user}`, inline: true }
+                        )
+                        .setColor('#2b2d31')
+                        .setTimestamp();
+
+                    await logChannel.send({ embeds: [logEmbed], files: [attachment] });
+                }
+            } catch (err) {
+                console.error('Failed to send transcript to log channel', err);
+            }
+        }
+
+        // 3. Update Database
         ticketData.status = 'closed';
         ticketData.closedAt = new Date();
         ticketData.closedBy = user.id;
@@ -440,18 +464,36 @@ async function handleTicketClose(interaction) {
 
         await ticketData.save();
 
-        // 5. Log Action
+        // 4. Log Action
         await logAction(guild.id, 'TICKET_CLOSE', user, {
             channelName: channel.name,
             ticketId: ticketData._id
         });
 
-        // 6. Respond and Delete
-        await interaction.editReply({ content: '✅ Ticket closed. Deleting channel in 5 seconds...', files: [attachment] });
+        // 5. Handle Channel (Archive or Delete)
+        if (panel && panel.closedCategory) {
+            // MOVED TO ARCHIVE
+            await channel.setParent(panel.closedCategory);
 
-        setTimeout(() => {
-            channel.delete().catch(() => { });
-        }, 5000);
+            // Lock Permissions
+            const { PermissionFlagsBits } = require('discord.js');
+            await channel.permissionOverwrites.edit(ticketData.userId, { ViewChannel: false }); // Hide from user
+            if (panel.supportRole) {
+                await channel.permissionOverwrites.edit(panel.supportRole, { ViewChannel: true, SendMessages: false }); // Support can read only
+            }
+            await channel.permissionOverwrites.edit(guild.roles.everyone, { ViewChannel: false });
+
+            // Rename
+            await channel.setName(`closed-${ticketData.userId.substring(ticketData.userId.length - 4)}`);
+
+            await interaction.editReply({ content: `✅ Ticket closed and archived in <#${panel.closedCategory}>.`, files: [attachment] });
+        } else {
+            // DELETE
+            await interaction.editReply({ content: '✅ Ticket closed. Deleting channel in 5 seconds...', files: [attachment] });
+            setTimeout(() => {
+                channel.delete().catch(() => { });
+            }, 5000);
+        }
 
     } catch (err) {
         console.error('Ticket Close Error:', err);

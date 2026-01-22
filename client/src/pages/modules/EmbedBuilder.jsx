@@ -57,9 +57,12 @@ const EmbedBuilder = () => {
                 <Card title="Embed Builder & Say Command" variant="borderless">
                     <Form form={form} layout="vertical" onFinish={onFinish} onValuesChange={(_, allValues) => setPreview(allValues)}>
                         <Form.Item name="channelId" label="Select Channel" rules={[{ required: true, message: 'Please select a channel' }]}>
-                            <Select placeholder="Select a channel" showSearch filterOption={(input, option) => option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}>
-                                {channels.map(ch => <Option key={ch.id} value={ch.id}>#{ch.name}</Option>)}
-                            </Select>
+                            <Select
+                                placeholder="Select a channel"
+                                showSearch
+                                optionFilterProp="label"
+                                options={channels.map(ch => ({ label: `#${ch.name}`, value: ch.id }))}
+                            />
                         </Form.Item>
 
                         <Divider titlePlacement="left">Message Content</Divider>

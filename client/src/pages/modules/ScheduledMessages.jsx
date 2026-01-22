@@ -101,9 +101,12 @@ const ScheduledMessages = () => {
             >
                 <Form form={createForm} layout="vertical" onFinish={handleCreate}>
                     <Form.Item name="channelId" label="Channel" rules={[{ required: true }]}>
-                        <Select placeholder="Select a channel">
-                            {channels.map(c => <Option key={c.id} value={c.id}>#{c.name}</Option>)}
-                        </Select>
+                        <Select
+                            placeholder="Select a channel"
+                            showSearch
+                            optionFilterProp="label"
+                            options={channels.map(c => ({ label: `#${c.name}`, value: c.id }))}
+                        />
                     </Form.Item>
                     <Form.Item name="cronExpression" label="Cron Expression" rules={[{ required: true }]} help={<a href="https://crontab.guru/" target="_blank" rel="noreferrer">Help me writing cron</a>}>
                         <Input placeholder="* * * * *" />

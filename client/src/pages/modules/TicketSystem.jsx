@@ -249,6 +249,8 @@ const TicketSystem = () => {
                                                         dropdownMatchSelectWidth={false}
                                                         onChange={(val) => setDeployTargets({ ...deployTargets, [panel.uniqueId]: val })}
                                                         options={channels.map(c => ({ label: '#' + c.name, value: c.id }))}
+                                                        showSearch
+                                                        optionFilterProp="label"
                                                     />
                                                     <Tooltip title="Send to Discord">
                                                         <SendOutlined
@@ -330,6 +332,23 @@ const TicketSystem = () => {
                             <Title level={5} style={{ color: '#fff' }}>Ticket Settings</Title>
                             <Row gutter={16}>
                                 <Col span={12}>
+                                    <Form.Item name="ticketCategory" label="Open Ticket Category">
+                                        <Select placeholder="Select Category" showSearch optionFilterProp="label" allowClear
+                                            options={channels.filter(c => c.type === 4).map(c => ({ label: c.name.toUpperCase(), value: c.id }))}
+                                        />
+                                    </Form.Item>
+                                </Col>
+                                <Col span={12}>
+                                    <Form.Item name="closedCategory" label="Closed Ticket Category">
+                                        <Select placeholder="Select Category (Optional)" showSearch optionFilterProp="label" allowClear
+                                            options={channels.filter(c => c.type === 4).map(c => ({ label: c.name.toUpperCase(), value: c.id }))}
+                                        />
+                                    </Form.Item>
+                                </Col>
+                            </Row>
+
+                            <Row gutter={16}>
+                                <Col span={12}>
                                     <Form.Item name="namingScheme" label="Naming Scheme">
                                         <Select>
                                             <Option value="ticket-{username}">ticket-username</Option>
@@ -344,6 +363,16 @@ const TicketSystem = () => {
                                                 <Option key={r.id} value={r.id} style={{ color: r.color }}>{r.name}</Option>
                                             ))}
                                         </Select>
+                                    </Form.Item>
+                                </Col>
+                            </Row>
+
+                            <Row gutter={16}>
+                                <Col span={24}>
+                                    <Form.Item name="transcriptChannelId" label="Transcript Log Channel">
+                                        <Select placeholder="Select a channel to log transcripts" showSearch optionFilterProp="label" allowClear
+                                            options={channels.filter(c => c.type === 0).map(c => ({ label: `#${c.name}`, value: c.id }))}
+                                        />
                                     </Form.Item>
                                 </Col>
                             </Row>

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Layout, Menu, Avatar, Dropdown, theme, Drawer, Button, Grid } from 'antd';
-import { useTranslation } from 'react-i18next';
 import Footer from './Footer';
 import {
     DashboardOutlined,
@@ -27,7 +26,6 @@ import styled from 'styled-components';
 import { useBranding } from '../../context/BrandingContext';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
-import LanguageSwitcher from '../LanguageSwitcher';
 
 const { Header, Sider, Content } = Layout;
 
@@ -95,41 +93,39 @@ const MainLayout = () => {
         return false;
     };
 
-    const { t } = useTranslation();
-
     const items = [
         {
             key: `/dashboard/${guildId}`,
             icon: <DashboardOutlined />,
-            label: t('sidebar.overview'),
+            label: 'Overview',
         },
         {
             key: 'modules',
-            label: t('sidebar.modules'),
+            label: 'Modules',
             type: 'group',
             children: [
-                { key: `/dashboard/${guildId}/moderation`, icon: <SafetyCertificateOutlined />, label: t('sidebar.moderation'), disabled: isLocked('moderation') },
-                { key: `/dashboard/${guildId}/music`, icon: <CustomerServiceOutlined />, label: isLocked('music') ? <span>{t('sidebar.music')} 🔒</span> : t('sidebar.music'), disabled: isLocked('music') },
-                { key: `/dashboard/${guildId}/tickets`, icon: <DeploymentUnitOutlined />, label: t('sidebar.tickets'), disabled: isLocked('tickets') },
-                { key: `/dashboard/${guildId}/analytics`, icon: <BarChartOutlined />, label: t('sidebar.analytics'), disabled: isLocked('analytics') },
-                { key: `/dashboard/${guildId}/logs`, icon: <FileTextOutlined />, label: t('sidebar.logs'), disabled: isLocked('logging') },
+                { key: `/dashboard/${guildId}/moderation`, icon: <SafetyCertificateOutlined />, label: 'Moderation', disabled: isLocked('moderation') },
+                { key: `/dashboard/${guildId}/music`, icon: <CustomerServiceOutlined />, label: isLocked('music') ? <span>Music 🔒</span> : 'Music', disabled: isLocked('music') },
+                { key: `/dashboard/${guildId}/tickets`, icon: <DeploymentUnitOutlined />, label: 'Tickets', disabled: isLocked('tickets') },
+                { key: `/dashboard/${guildId}/analytics`, icon: <BarChartOutlined />, label: 'Analytics', disabled: isLocked('analytics') },
+                { key: `/dashboard/${guildId}/logs`, icon: <FileTextOutlined />, label: 'Logging', disabled: isLocked('logging') },
                 { type: 'divider' },
-                { key: `/dashboard/${guildId}/messages`, icon: <MessageOutlined />, label: isLocked('embedBuilder') ? <span>{t('sidebar.embedBuilder')} 🔒</span> : t('sidebar.embedBuilder'), disabled: isLocked('embedBuilder') },
-                { key: `/dashboard/${guildId}/forms`, icon: <FormOutlined />, label: isLocked('forms') ? <span>{t('sidebar.forms')} 🔒</span> : t('sidebar.forms'), disabled: isLocked('forms') },
-                { key: `/dashboard/${guildId}/scheduled-messages`, icon: <CalendarOutlined />, label: t('sidebar.scheduledMessages'), disabled: isLocked('scheduledMessages') },
-                { key: `/dashboard/${guildId}/management`, icon: <ToolOutlined />, label: t('sidebar.management') },
+                { key: `/dashboard/${guildId}/messages`, icon: <MessageOutlined />, label: isLocked('embedBuilder') ? <span>Embed Builder 🔒</span> : 'Embed Builder', disabled: isLocked('embedBuilder') },
+                { key: `/dashboard/${guildId}/forms`, icon: <FormOutlined />, label: isLocked('forms') ? <span>Forms 🔒</span> : 'Forms', disabled: isLocked('forms') },
+                { key: `/dashboard/${guildId}/scheduled-messages`, icon: <CalendarOutlined />, label: 'Scheduled Messages', disabled: isLocked('scheduledMessages') },
+                { key: `/dashboard/${guildId}/management`, icon: <ToolOutlined />, label: 'Management' },
 
             ]
         },
         {
             key: `/dashboard/${guildId}/privacy`,
             icon: <SafetyCertificateOutlined />,
-            label: t('sidebar.privacy'),
+            label: 'Data Privacy',
         },
         {
             key: `/dashboard/${guildId}/settings`,
             icon: <SettingOutlined />,
-            label: t('sidebar.settings'),
+            label: 'Settings',
         },
     ];
 
@@ -140,7 +136,7 @@ const MainLayout = () => {
         items.push({
             key: '/super-admin',
             icon: <ThunderboltOutlined style={{ color: '#ff4d4f' }} />,
-            label: <span style={{ color: '#ff4d4f' }}>{t('sidebar.superAdmin')}</span>,
+            label: <span style={{ color: '#ff4d4f' }}>Super Admin</span>,
         });
     }
 
@@ -148,12 +144,12 @@ const MainLayout = () => {
         items: [
             {
                 key: 'servers',
-                label: t('menu.switchServer'),
+                label: 'Switch Server',
                 onClick: () => navigate('/dashboard')
             },
             {
                 key: 'logout',
-                label: t('menu.logout'),
+                label: 'Logout',
                 icon: <LogoutOutlined />,
                 onClick: () => window.location.href = '/api/auth/logout'
             }
@@ -224,9 +220,6 @@ const MainLayout = () => {
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{ marginRight: 16 }}>
-                            <LanguageSwitcher />
-                        </div>
                         {user && (
                             <div style={{ textAlign: 'right', marginRight: 8, display: isMobile ? 'none' : 'block' }}>
                                 <div style={{ color: '#fff', fontWeight: 600, fontSize: 14 }}>{user.globalName || user.username}</div>
